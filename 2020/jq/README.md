@@ -13,13 +13,19 @@ aoc_jq_run() {
 ```
 
 ### 2
+
 [AOC 2020 2 in JQ](./2.jq)
-<img src="../../media/2020/2-2.png?raw=true"/>
+
+<img src="../../../media/2020/2-2.png?raw=true"/>
 
 ### 3
+
 [AOC 2020 3 in JQ](./3.jq)
-<img src="../../media/2020/3-2.png?raw=true"/>
+
+<img src="../../../media/2020/3-2.png?raw=true"/>
 
 ### 4
+
 [AOC 2020 4 in JQ](./4.jq)
-<img src="../../media/2020/4-2.png?raw=true"/>
+
+<img src="../../../media/2020/4-2.png?raw=true"/>
