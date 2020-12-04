@@ -1,4 +1,4 @@
-# https://adventofcode.com/2020/day/3 part 3 in jq
+# https://adventofcode.com/2020/day/3 part 2 in jq
 
 def simulateToboggan($x; $y):
 to_entries | 
