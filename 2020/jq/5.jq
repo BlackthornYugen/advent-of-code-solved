@@ -23,6 +23,7 @@ def binarySearch($low; $high; $target):
 
 def gapFinder:
     sort_by(.id) |
+    label $out   |
     # foreach EXP as $var (INIT; UPDATE; EXTRACT)
     foreach .[] as $seat (
         #INIT;
@@ -35,7 +36,7 @@ def gapFinder:
 
         #EXTRACT
         # When we find a gap of 2, output the gap seat id
-        if .[1] - .[0] == 2 then $seat.id - 1 else empty end
+        if .[1] - .[0] == 2 then $seat.id - 1 , break $out else empty end
     )
 ;
 
