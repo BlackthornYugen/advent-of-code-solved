@@ -2,16 +2,15 @@
 
 def binarySearch($max; $true):
     # debug
-    ( split("") | reverse | to_entries | reduce .[] as $item (
+    ( split("") | . | debug| to_entries  | reduce .[] as $item (
         1;
-        if $item.value == $true then . * ($item.key + 1) else . end
+        if $item.value == $true then . + pow(2;$item.key) | debug else . end
     ) )
 ;
 
 split("\n") | .[0:5] | 
-    map( 
-        [ 
-            (.[0:7]  | binarySearch(5; "F") ), 
-            (.[7:10] | binarySearch(5; "R" )) 
-        ] )
-    | debug | length
+    map([ 
+            (.[0:7]  | binarySearch(128; "F")), 
+            (.[7:10] | binarySearch(8;   "R" )) 
+        ])
+    
