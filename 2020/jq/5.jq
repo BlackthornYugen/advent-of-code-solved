@@ -21,11 +21,33 @@ def binarySearch($low; $high; $target):
     end
 ;
 
+def gapFinder:
+    sort_by(.id) |
+    # foreach EXP as $var (INIT; UPDATE; EXTRACT)
+    foreach .[] as $seat (
+        #INIT;
+        # Rolling window of seats scanned
+        [0, 0];
+
+        #UPDATE
+        # On each update, let seat n-2 fall off, and keep track of seat n and n - 1
+        [ .[1], $seat.id ];
+
+        #EXTRACT
+        # When we find a gap of 2, output the gap seat id
+        if .[1] - .[0] == 2 then $seat.id - 1 else empty end
+    )
+;
 
 
 parse | map({
            row:    (.[0:7]  | binarySearch(0; 127; "B")),
            column: (.[7:10] | binarySearch(0;   7; "R")) 
-        } | . + {seatId: (.row * 8 + .column)} )
-        | sort_by(.seatId)
-        | .[-1:][0].seatId
+        } 
+        # Part 1
+        # | . + {seatId: (.row * 8 + .column)} )
+        # | sort_by(.seatId)
+        # | .[-1:][0].seatId
+        # part 2
+        | . + {id: (.row * 8 + .column)} )
+        | gapFinder
