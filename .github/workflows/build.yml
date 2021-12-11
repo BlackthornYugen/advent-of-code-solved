@@ -27,6 +27,9 @@ jobs:
           owner: shellspec
           # Repository name
           repository: shellspec
-    
+
       - name: Shellspec jq
         run: ./shellspec/shellspec spec/jq_spec.sh
+
+      - name: Shellspec javascript
+        run: ./shellspec/shellspec spec/js_spec.sh
