@@ -25,6 +25,3 @@ jobs:
 
       - name: Shellspec jq
         run: shellspec spec/jq_spec.sh
-
-      - name: Shellspec javascript
-        run: shellspec spec/js_spec.sh
