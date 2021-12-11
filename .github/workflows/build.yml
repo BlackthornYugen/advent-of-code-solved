@@ -21,12 +21,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Get Shellspec
-        uses: GuillaumeFalourd/clone-github-repo-action@v1
-        with:
-          # Repository Owner
-          owner: shellspec
-          # Repository name
-          repository: shellspec
-    
+        run: curl -fsSL https://git.io/shellspec | tee >(sha256sum) | sh
+
       - name: Shellspec jq
-        run: ./shellspec/shellspec spec/jq_spec.sh
+        run: shellspec spec/jq_spec.sh
+
+      - name: Shellspec javascript
+        run: shellspec spec/js_spec.sh
