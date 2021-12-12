@@ -10,9 +10,8 @@
 split("\n") |
 
 # loop through data
-reduce .[] as $item ({"x": 0, "y": 0}; 
-
-    . as $position | $item | capture("(?<direction>\\w+) (?<distance>\\d+)"; "ig") | { 
+reduce .[] as $command ({"x": 0, "y": 0}; 
+    . as $position | $command | capture("(?<direction>\\w+) (?<distance>\\d+)"; "g") | { 
         "x": ($position.x + ($directions[.direction].x * (.distance | tonumber))),
         "y": ($position.y + ($directions[.direction].y * (.distance | tonumber)))
     } | debug
