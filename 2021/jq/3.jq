@@ -1,7 +1,3 @@
-def parse_numeric_array:
-    split("") | map (. | tonumber)
-;
-
 # Given two equal size arrays with numeric data [[a1, a2, a3, a...], [b1, b2, b3, b...]]
 # return [a1+b1, a2+b2, a3+b3, ...]
 def add_arrays:
@@ -14,8 +10,8 @@ split("\n") |
 # loop through data
 reduce .[] as $diagnostic ([];
   if . | length == 0
-  then [$diagnostic | parse_numeric_array]
-  else [($diagnostic | parse_numeric_array), .[0]] | add_arrays
+  then [$diagnostic | split("")]
+  else [($diagnostic | split("")), .[0]] | [add_arrays]
   end
 )
 
