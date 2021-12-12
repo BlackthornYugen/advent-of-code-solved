@@ -83,14 +83,14 @@ Describe '2021 jq advent of code'
     End
 
     It "script must output $2 for $1.input"
-      When run jq --slurp --raw-input --from-file "2021/jq/3.jq" "2021/$1.input"
+      When run jq -L 2021/jq --slurp --raw-input --from-file "2021/jq/3a.jq" "2021/$1.input"
       The stderr should match pattern "*DEBUG*"
       The output should eq "$2"
       The status should be success
     End
 
     It "script stderr should equal $3 for $1.input"
-      When run jq --slurp --raw-input --from-file "2021/jq/3.jq" "2021/$1.input"
+      When run jq -L 2021/jq --slurp --raw-input --from-file "2021/jq/3a.jq" "2021/$1.input"
       The stderr should eq "$3"
       The output should be valid number
       The status should be success

@@ -48,26 +48,5 @@ def add_arrays:
     reduce range(0, (.[0] | length)) as $i (.; .[0][$i] += (if .[1][$i] == 0 then -1 else 1 end) ) | .[0]
 ;
 
-# break up data on newlines
-split("\n") |
-
-# loop through diagnostic data keeping a running
-# total of data that can be normalized and used
-# to calculate gamma or epsilon
-reduce .[] as $diagnostic ([];
-  if . | length == 0
-  then [$diagnostic | parse_numeric_array]
-  else [.[0], ($diagnostic | parse_numeric_array)] | [add_arrays]
-  end
-) | normalize_binary |
-
-{ gamma: calculate_gamma, epsilon: calculate_epsilon } |
-
-# Print calculated values ["DEBUG:",{"epsilon":#,"gamma":#}]
-debug |
-
-# Calculate power consumption
-.gamma * .epsilon
-
-# Usage
-# jq --slurp --raw-input --from-file "2021/jq/3.jq" "2021/03_demo.input"
+# Usage:
+# import 3 as lib;
