@@ -77,21 +77,21 @@ Describe '2021 jq advent of code'
 
   Describe '3a'
     Parameters
-      # File      # Result  # Err Line # Should match
-      03_demo       "198"        12      '["DEBUG:",{"gamma":22,"epsilon":99}]'
-      03_blackthorn "???"        1000    '["DEBUG:",{"gamma":??,"epsilon":???}]'
+      # File      # Result  # Err Line Should match
+      03_demo       "198"      '["DEBUG:",{"gamma":22,"epsilon":9}]'
+      03_blackthorn "3242606"  '["DEBUG:",{"gamma":3022,"epsilon":1073}]'
     End
 
     It "script must output $2 for $1.input"
-      When run jq --slurp --raw-input --from-file "2021/jq/2b.jq" "2021/$1.input"
+      When run jq --slurp --raw-input --from-file "2021/jq/3.jq" "2021/$1.input"
       The stderr should match pattern "*DEBUG*"
       The output should eq "$2"
       The status should be success
     End
 
-    It "script stderr line $3 should match $4 for $1.input"
-      When run jq --slurp --raw-input --from-file "2021/jq/2b.jq" "2021/$1.input"
-      The stderr line "$3" should eq "$4"
+    It "script stderr should equal $3 for $1.input"
+      When run jq --slurp --raw-input --from-file "2021/jq/3.jq" "2021/$1.input"
+      The stderr should eq "$3"
       The output should be valid number
       The status should be success
     End
