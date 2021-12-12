@@ -2,22 +2,10 @@ def parse_numeric_array:
     split("") | map (. | tonumber)
 ;
 
+# Given two equal size arrays with numeric data [[a1, a2, a3, a...], [b1, b2, b3, b...]]
+# return [a1+b1, a2+b2, a3+b3, ...]
 def add_arrays:
-    .[0] as $first_array  |
-    .[1] as $second_array |
-    foreach .[0] as $ee (
-        #INIT;
-        [];
-
-        #UPDATE
-        . + ([$first_array + $second_array]);
-
-        #EXTRACT
-        if ($second_array | length | debug ) >= (. | length | debug)
-        then .
-        else .
-        end
-    )
+    reduce range(0, (.[0] | length)) as $i (.; .[0][$i] += .[1][$i] ) | .[0]
 ;
 
 # break up data on newlines
