@@ -24,3 +24,7 @@ def find_increases($window_size):
 
 . + [-1] | find_increases(($ARGS.named.window // 1)|tonumber)
 
+# Usage 1a:
+# jq --slurp --from-file "2021/jq/1.jq" "2021/01_blackthorn.input"
+# Usage 1b:
+# jq --slurp --arg window 3 --from-file "2021/jq/1.jq" "2021/01_blackthorn.input"
