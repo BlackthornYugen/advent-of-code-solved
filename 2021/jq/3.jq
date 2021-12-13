@@ -54,7 +54,7 @@ def calculate_epsilon:
 
 def find_rating:
     label $out | foreach range(0, .[0] | length + 2) as $i (
-    ([([.[0]] | normalize_binary), .[1]]) ;
+    ([(.[0] | debug), .[1]]) ;
 
     .[0] as $j | [.[0], [
         ( 
@@ -69,16 +69,32 @@ def find_rating:
         ] ];
 
         # Log result when it has been narrowed down to one canidate
-        if (.[1] | length) == 1 then . else empty end
-    ) | debug | .[0]
+        debug | if (.[1] | length) == 1 then . else empty end
+    ) | debug | .[1][0] | debug | parse_numeric_array
 ;
 
 def find_oxygen_generator_rating: 
-    debug | find_rating | bin_array_to_dec
+    # Normalize binary data to 1s and 0s
+    [ ([.[0]] | normalize_binary) , .[1]] |
+    
+    # Find rating using most comon bits
+    find_rating |
+
+    # Convert to decimal
+    bin_array_to_dec
 ;
 
-def find_cO2_scrubber_rating: 
-    debug | [(( [ .[0], [1,1,1,1,1] ] | add_arrays | bitwise_negate ) | debug), .[1]] | debug | find_rating | bin_array_to_dec
+def find_cO2_scrubber_rating:
+    # Add 1 to each element (to break ties in favor of 1)
+    [ ( (.[0] | map(. + 1)) | 
+        # Flip bits, cO2 scrubber is looking for least common bits
+        bitwise_negate ), .[1]] | 
+    
+    # find rating with inverted bits
+    find_rating |
+
+    # Convert to decimal
+    bin_array_to_dec
 ;
 
 # Usage:
