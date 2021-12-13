@@ -54,7 +54,7 @@ def calculate_epsilon:
 
 def find_rating:
     label $out | foreach range(0, .[0] | length + 2) as $i (
-    ([(.[0] | debug), .[1]]) ;
+    ([(.[0]), .[1]]) ;
 
     .[0] as $j | [.[0], [
         ( 
@@ -69,8 +69,8 @@ def find_rating:
         ] ];
 
         # Log result when it has been narrowed down to one canidate
-        debug | if (.[1] | length) == 1 then . else empty end
-    ) | debug | .[1][0] | debug | parse_numeric_array
+        if (.[1] | length) == 1 then . else empty end
+    ) | .[1][0] | parse_numeric_array
 ;
 
 def find_oxygen_generator_rating: 
