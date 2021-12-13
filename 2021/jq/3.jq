@@ -26,17 +26,6 @@ def bin_array_to_dec:
     |   .[0]
 ;
 
-# Gamma is the decimal equivelant of a binary string
-def calculate_gamma:
-    bin_array_to_dec
-;
-
-# epsilon is the decimal equivelant of a bitwise negation of a
-# binary string.
-def calculate_epsilon:
-    map (if . == 0 then 1 else 0 end) | bin_array_to_dec
-;
-
 # Given two arrays where array 1 is numeric data and array two is an array of binary data (0,1)
 # return [a1 + (b1 == 1 ? 1 : -1),  a2 + (b2 == 1 ? 1 : -1), ...]
 #
@@ -46,6 +35,50 @@ def calculate_epsilon:
 # [0,0,0]   [2, 3,-2]    [3, 4, 5, 6, 7]   <- sum
 def add_arrays:
     reduce range(0, (.[0] | length)) as $i (.; .[0][$i] += (if .[1][$i] == 0 then -1 else 1 end) ) | .[0]
+;
+
+def bitwise_negate: 
+    map (if . == 0 then 1 else 0 end)
+;
+
+# Gamma is the decimal equivelant of a binary string
+def calculate_gamma:
+    normalize_binary | bin_array_to_dec
+;
+
+# epsilon is the decimal equivelant of a bitwise negation of a
+# binary string.
+def calculate_epsilon:
+    normalize_binary | bitwise_negate | bin_array_to_dec
+;
+
+def find_rating:
+    label $out | foreach range(0, .[0] | length + 2) as $i (
+    ([([.[0]] | normalize_binary), .[1]]) ;
+
+    .[0] as $j | [.[0], [
+        ( 
+            if (.[1] | length) == 1 then 
+            # We have started a new loop after already finding our canidate, break loop!
+            break $out 
+            else 
+            # Narrow ther search with the next digit
+            .[1][] | select ((. | split("") | .[$i] | tonumber) == ($j)[$i]) 
+            end
+        )
+        ] ];
+
+        # Log result when it has been narrowed down to one canidate
+        if (.[1] | length) == 1 then . else empty end
+    ) | debug | .[0]
+;
+
+def find_oxygen_generator_rating: 
+    debug | find_rating | bin_array_to_dec
+;
+
+def find_cO2_scrubber_rating: 
+    debug | [(( [ .[0], [1,1,1,1,1] ] | add_arrays | bitwise_negate ) | debug), .[1]] | debug | find_rating | bin_array_to_dec
 ;
 
 # Usage:
