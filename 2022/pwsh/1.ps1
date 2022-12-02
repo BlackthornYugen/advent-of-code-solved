@@ -1,6 +1,10 @@
 #/usr/bin/env pwsh
 
-$content = Get-Content ../input.1
+param (
+    [string]$FileName = "./2022/input.2"
+)
+
+$content = Get-Content $FileName
 $elf_calories = New-Object Collections.Generic.List[Int]
 $elf_calories.Add(0)
 $highest_cals = (-1, -1, -1)

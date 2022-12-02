@@ -1,7 +1,7 @@
 #/usr/bin/env pwsh
 
 param (
-    [string]$FileName = "../input.2"
+    [string]$FileName = "./2022/input.2"
 )
 
 $Shapes = @{ 
