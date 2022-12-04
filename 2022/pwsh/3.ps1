@@ -24,23 +24,23 @@ function Get-Priority() {
     throw "Invalid item"
 }
 
-$sumOfPriorities = 0
+$result = [PSCustomObject]@{
+    SumOfPriorities = 0
+    SumOfBadges     = 0
+}
+
+# Keep a buffer of 2 rucksacks so that we can compare every third one.
+$rucksackBuffer = New-Object Collections.Generic.List[PSCustomObject](2)
 
 Write-Debug "Item`tPriority"
-Get-Content $FileName | Select-Object | ForEach-Object {
+
+Get-Content $FileName | ForEach-Object {
     $rucksack = [PSCustomObject]@{ 
         Compartments = $_.Substring(0, $_.Length / 2), $_.Substring($_.Length / 2)
         MisidentifiedItem = $null
         OrganizationPriority = 0
     }
 
-
-    if (!$rucksack)
-    {
-        continue
-    }
-
-    
     for ($i = 0; $i -lt $rucksack.Compartments.Length; $i++) 
     {
         for ($j = 0; $j -lt $rucksack.Compartments[$i].Length; $j++)
@@ -56,7 +56,34 @@ Get-Content $FileName | Select-Object | ForEach-Object {
 
     }
     Write-Debug "$($rucksack.MisidentifiedItem)`t$($rucksack.OrganizationPriority)"
-    $sumOfPriorities += $rucksack.OrganizationPriority
+    
+    $result.SumOfPriorities += $rucksack.OrganizationPriority
+
+    # Calculate badge values for every third rucksack
+    if ($rucksackBuffer.Count -eq $rucksackBuffer.Capacity) {
+        for ($i = 0; $i -lt $_.Length; $i++)
+        {
+            if (
+                ($rucksackBuffer 
+                | ForEach-Object { $_.Compartments -join '' } 
+                | Select-String -Pattern $_[$i] -CaseSensitive 
+                | Measure-Object 
+                | ForEach-Object Count) -eq 2
+            )
+            {
+                $item = $_[$i]
+                $badgeValue = Get-Priority $item
+                Write-Debug "$item*`t$badgeValue"
+                $result.SumOfBadges += $badgeValue
+                break
+            }
+        }
+        $rucksackBuffer.Clear()
+    } 
+    else 
+    {
+        $rucksackBuffer.add($rucksack)
+    }
 }
 
-$sumOfPriorities
+$result
