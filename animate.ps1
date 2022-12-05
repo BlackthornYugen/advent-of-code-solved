@@ -5,14 +5,119 @@ function ProcessingAnimation($scriptBlock) {
         [Console]::CursorVisible = $false
         
         $counter = 0
-        $frames = "a, b,  c,   d".split(',')
+        $frames = @"
+                            .
+         //                      
+        //                      
+       | |                      
+      {[D]}                     
+   [N] [C]                      
+   [Z] [M] [P]                  
+    1   2   3                   
+    📸                            .
+         //                      
+        //                      
+       | |                      
+      [[D]]                     
+   [N] [C]                      
+   [Z] [M] [P]                  
+    1   2   3                   
+    📸                            .
+        //                   
+       | |                   
+      [[D]]                  
+                            .
+   [N] [C]                   
+   [Z] [M] [P]               
+    1   2   3                
+    📸                       
+       //                    
+      | |                    
+     [[D]]                   
+                            
+   [N] [C]                   
+   [Z] [M] [P]               
+    1   2   3                
+    📸                       
+      //                     
+     | |                     
+    [[D]]                    
+                            
+   [N] [C]                   
+   [Z] [M] [P]               
+    1   2   3                
+📸                           
+     //                      
+    | |                      
+   [[D]]                     
+                            
+   [N] [C]                   
+   [Z] [M] [P]               
+    1   2   3                
+📸                          
+    //                      
+   | |                      
+  [[D]]                     
+                            
+   [N] [C]                  
+   [Z] [M] [P]              
+    1   2   3               
+📸                          
+     //                     
+    //                      
+   | |                      
+  [[D]]                     
+   [N] [C]                  
+   [Z] [M] [P]              
+    1   2   3               
+📸                          
+     //                     
+    //                      
+   | |                      
+  {[D]}                     
+   [N] [C]                  
+   [Z] [M] [P]              
+    1   2   3               
+📸                          
+    //                      
+   | |                      
+  {   }                     
+   [D]                      
+   [N] [C]                  
+   [Z] [M] [P]              
+    1   2   3               
+    📸                      
+   | |                      
+  {   }                     
+                            
+   [D]                      
+   [N] [C]                  
+   [Z] [M] [P]              
+    1   2   3               
+    📸                      
+  {   }                     
+                            
+                            
+   [D]                      
+   [N] [C]                  
+   [Z] [M] [P]              
+    1   2   3               
+    📸                      
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+"@.Split("📸")
         $jobName = Start-Job -ScriptBlock $scriptBlock
     
+        # Clear-Host
         while ($jobName.JobStateInfo.State -eq "Running") {
             $frame = $frames[$counter % $frames.Length]
             
-            [Console]::SetCursorPosition(0, $cursorTop)
-            Write-Host "                 " -NoNewLine
+            # Clear-Host
             [Console]::SetCursorPosition(0, $cursorTop)
             Write-Host "$frame" -NoNewLine
             
@@ -26,7 +131,7 @@ function ProcessingAnimation($scriptBlock) {
     finally {
         # Throw away any keyboard input during animation
         while ($Host.UI.RawUI.KeyAvailable) {
-            $host.ui.rawui.readkey("NoEcho,IncludeKeyup") | Write-Null
+            $host.ui.rawui.readkey("NoEcho,IncludeKeyup") | Out-Null
         }
         [Console]::SetCursorPosition(0, $cursorTop)
         [Console]::CursorVisible = $true
@@ -152,4 +257,4 @@ function ProcessingAnimation($scriptBlock) {
 #  1   2   3
 
 
-ProcessingAnimation { Start-Sleep 2 }
+ProcessingAnimation { Start-Sleep 5 }
