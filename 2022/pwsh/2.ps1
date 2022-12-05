@@ -11,7 +11,7 @@ $Shapes = @{
 }
 
 $Strategies = @{
-    'X' = 'Loose'
+    'X' = 'Lose'
     'Y' = 'Draw'
     'Z' = 'Win'
 }
@@ -41,7 +41,7 @@ function Pick_Shape() {
             | Where-Object -Property Value -eq $Opponent_Shape_Name `
             | Select-Object -First 1 `
             | ForEach-Object Name
-    } elseif ($Strategy -eq 'Loose') {
+    } elseif ($Strategy -eq 'Lose') {
         $Player_Shape_Name = $Victory_Conditions[$Opponent_Shape_Name]
     } else {
         $Player_Shape_Name = $Opponent_Shape_Name
