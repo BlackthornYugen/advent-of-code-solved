@@ -1,7 +1,7 @@
 #/usr/bin/env pwsh
 
 param (
-    [string]$FileName = "./2022/input.4"
+    [string]$FileName = "./2022/4.input"
 )
 
 Get-Content $FileName 

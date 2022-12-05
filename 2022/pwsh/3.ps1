@@ -1,7 +1,7 @@
 #/usr/bin/env pwsh
 
 param (
-    [string]$FileName = "./2022/input.3"
+    [string]$FileName = "./2022/3.input"
 )
 
 function Get-Priority() {
