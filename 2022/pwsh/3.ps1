@@ -50,10 +50,8 @@ Get-Content $FileName | ForEach-Object {
             {
                 $rucksack.MisidentifiedItem = $rucksack.Compartments[$i][$j]
                 $rucksack.OrganizationPriority = Get-Priority $rucksack.MisidentifiedItem
-                break
             }
         }
-
     }
     Write-Debug "$($rucksack.MisidentifiedItem)`t$($rucksack.OrganizationPriority)"
     
