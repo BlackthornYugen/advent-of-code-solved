@@ -1,36 +1,61 @@
 #/usr/bin/env pwsh
 
 param (
-    [string]$FileName = "./2022/5.input"
+    [string]$FileName = "./2022/5.input.sample"
 )
 
-$patternCapture = '^.([A-Z ]). .([A-Z ]). .([A-Z ]). .([A-Z ]). .([A-Z ]). .([A-Z ]). .([A-Z ]). .([A-Z ]). .([A-Z ]).'
+$patternStack = '^.([1A-Z ]). .([2A-Z ]). .([3A-Z ]). .([4A-Z ]). .([5A-Z ]). .([6A-Z ]). .([7A-Z ]). .([8A-Z ]). .([9A-Z ]).'
+$patternStackMatches = New-Object System.Collections.Generic.List[Hashtable]
 $patternAction = 'move (\d+) from (\d+) to (\d+)'
-# $cursorTop = [Console]::GetCursorPosition().Item2
-$workspace = "`n`n`n`n`n`n`n`n`n`n`n`n"
-# [Console]::CursorVisible = $false
-$elements = New-Object System.Collections.Generic.Stack[char][] 9
+$elements = New-Object System.Collections.Generic.Stack[char][] 3
 
 for ($i = 0; $i -lt $elements.Count; $i++) {
     $elements[$i] = New-Object System.Collections.Generic.Stack[char]
 }
 
+function PrintElements {
+    $elements | ForEach-Object {
+        if ($_.Count) {
+            Write-Host -NoNewline $_.Peek()
+        }
+    }
+    Write-Host ""
+}
 
 Get-Content $FileName
+| Select-Object
 | ForEach-Object {
-    if (!$workspaceComplete) {
-        $workspace += "$_`n"
-        if ($_ -match $patternCapture ) {
-            for ($i = 1; $i -lt $elements.Count; $i++) {
-                $elements[$i].Push($Matches[$i + 1]) | Out-Null
+
+    if ($_ -match $patternStack ) {
+        if ( $Matches[1] -eq "1" ) {
+            for ($i = $patternStackMatches.Count - 1; $i -ge 0 ; $i--) {
+                for ($j = 0; $j -lt $elements.Count; $j++) {
+                    $box = $patternStackMatches[$i][$j + 1]
+                    if ($box -ne " ") {
+                        $elements[$j].Push($patternStackMatches[$i][$j + 1])
+                    }
+                }
             }
+        } else {
+            $patternStackMatches.Add($Matches)
         }
     } elseif ($_ -match $patternAction) {
+
+        PrintElements
         $_
-        # [Console]::SetCursorPosition(0, $cursorTop)
-        # Write-Host -NoNewLine "x"
-        # [Console]::SetCursorPosition(5, $cursorTop)
-        # Write-Host -NoNewLine "y"
+
+        $numberOfBoxes = [int]$Matches[1]
+        $from          = $elements[[int]$Matches[2] - 1]
+        $to            = $elements[[int]$Matches[3] - 1]
+        $buffer        = New-Object char[] $numberOfBoxes
+
+        for ($i = 0; $i -lt $buffer.Count; $i++) {
+            $buffer[$i] = $from.Pop()
+        }
+
+        for ($i = $buffer.Count - 1; $i -ge 0 ; $i--) {
+            $to.Push($buffer[$i])
+        }
     }
 }
 
@@ -41,5 +66,4 @@ while ($Host.UI.RawUI.KeyAvailable) {
 }
 # [Console]::SetCursorPosition(0, $cursorTop)
 # [Console]::CursorVisible = $true
-
-$elements
+PrintElements
