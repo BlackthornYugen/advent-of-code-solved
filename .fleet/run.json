@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "type": "command",
+            "name": "Powershell Run",
+            "program": "pwsh",
+            "args": ["$FILE$"]
+        },
+        {
+            "type": "command",
+            "name": "JQ Run (Slurp)",
+            "program": "jq",
+            "args": ["--slurp", "--from-file", "$FILE$", "$FILE$.input"]
+        },
+
+    ]
+}
