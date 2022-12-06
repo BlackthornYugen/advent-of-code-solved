@@ -8,8 +8,7 @@ $patternStack = '^.([1A-Z ]). .([2A-Z ]). .([3A-Z ]). .([4A-Z ]). .([5A-Z ]). .(
 $patternStackMatches = New-Object System.Collections.Generic.List[Hashtable]
 $patternAction = 'move (\d+) from (\d+) to (\d+)'
 $elements = New-Object System.Collections.Generic.Stack[char][] 9
-$cursorTop = [Console]::GetCursorPosition().Item2
-$drawHeight = 50
+$drawHeight = 20
 
 for ($i = 0; $i -lt $elements.Count; $i++) {
     $elements[$i] = New-Object System.Collections.Generic.Stack[char]
@@ -17,38 +16,58 @@ for ($i = 0; $i -lt $elements.Count; $i++) {
 
 function PrintElements {
     try {
+        $cursorPosition = [Console]::GetCursorPosition()
         [Console]::CursorVisible = $false
-        $elements | ForEach-Object {
-            if ($_.Count) {
-                Write-Host -NoNewline $_.Peek()
-            }
-        }
-        Write-Host ""
         for ($i = 0; $i -lt $elements.Count; $i++) {
-            $boxes = $elements[$i].ToArray()
+            $boxes = $elements[$elements.Count - 1 - $i].ToArray()
 
             for ($j = 0; $j -lt $drawHeight; $j++) {
-                [Console]::SetCursorPosition($i * 4, $cursorTop + $drawHeight - $j)
-                if (!$boxes[$j]) {
-                    Write-Host -NoNewline "    "
-                }
+                [Console]::SetCursorPosition([System.Console]::BufferWidth - 4 - ($i * 4), [System.Console]::BufferHeight - 1 - $j )
+                Write-Host -NoNewline "    "
             }
 
-            for ($j = 0; $j -lt $boxes.Count; $j++) {
-                Start-Sleep -Milliseconds 66
-                [Console]::SetCursorPosition($i * 4, $cursorTop + $drawHeight - $j)
-                Write-Host -NoNewline " [$($boxes[$j])]"
-            }
+            # for ($j = 0; $j -lt $boxes.Count; $j++) {
+            #     Start-Sleep -Milliseconds 2
+            #     [Console]::SetCursorPosition([System.Console]::BufferWidth - 4 - ($i * 4), [System.Console]::BufferHeight - 1 - $j)
+            #     Write-Host -NoNewline " [$($boxes[$j])]"
+            # }
 
+            DrawArray -boxes $boxes -column $i 0
         }
     } finally {
-        [Console]::SetCursorPosition(0, $cursorTop)
+        [Console]::SetCursorPosition($cursorPosition.Item1,$cursorPosition.Item2)
+        [Console]::CursorVisible = $true
+    }
+}
+
+function DrawArray {
+    param (
+        [char[]] $boxes,
+        [int]    $column,
+        [int]    $offset = 0,
+        [int]    $sleep = 2
+    )
+    
+    try {
+        $cursorPosition = [Console]::GetCursorPosition()
+        [Console]::CursorVisible = $false
+        for ($i = 0; $i -lt $boxes.Length; $i++) {
+            Start-Sleep -Milliseconds $sleep
+            [Console]::SetCursorPosition([System.Console]::BufferWidth - 3 - ($column * 4), [System.Console]::BufferHeight - 1 - $i - $offset)
+            if ($boxes[$i]) {
+                Write-Host -NoNewline "[$($boxes[$boxes.Length - 1 - $i])]"
+            } else {
+                Write-Host -NoNewline "   "
+            }
+        }
+    } finally {
+        [Console]::SetCursorPosition($cursorPosition.Item1,$cursorPosition.Item2)
         [Console]::CursorVisible = $true
     }
 }
 
 Get-Content $FileName
-| Select-Object -First 12
+# | Select-Object -First 11
 | ForEach-Object {
 
     if ($_ -match $patternStack ) {
@@ -61,16 +80,17 @@ Get-Content $FileName
                     }
                 }
             }
+
+            PrintElements
         } else {
             $patternStackMatches.Add($Matches)
         }
     } elseif ($_ -match $patternAction) {
-        PrintElements
-
         $numberOfBoxes = [int]$Matches[1]
         $from          = $elements[[int]$Matches[2] - 1]
         $to            = $elements[[int]$Matches[3] - 1]
         $buffer        = New-Object char[] $numberOfBoxes
+        $emptyBuffer   = New-Object char[] $numberOfBoxes
 
         for ($i = 0; $i -lt $buffer.Count; $i++) {
             $buffer[$i] = $from.Pop()
@@ -79,6 +99,9 @@ Get-Content $FileName
         for ($i = $buffer.Count - 1; $i -ge 0 ; $i--) {
             $to.Push($buffer[$i])
         }
+
+        DrawArray -boxes $emptyBuffer -column (10 - [int]$Matches[2] - 1) -offset (-3+$buffer.Count) -sleep 200
+        DrawArray -boxes $buffer      -column (10 - [int]$Matches[3] - 1) -offset (3+$buffer.Count) -sleep 200
     }
 }
 
@@ -89,4 +112,6 @@ while ($Host.UI.RawUI.KeyAvailable) {
 }
 # [Console]::SetCursorPosition(0, $cursorTop)
 # [Console]::CursorVisible = $true
-PrintElements
+# PrintElements
+
+[Console]::SetCursorPosition($cursorPosition.Item1,$cursorPosition.Item2)
