@@ -9,6 +9,9 @@ $patternStackMatches = New-Object System.Collections.Generic.List[Hashtable]
 $patternAction = 'move (\d+) from (\d+) to (\d+)'
 $elements = New-Object System.Collections.Generic.Stack[char][] 9
 
+$boxesMoved = 1
+$boxesExpectedToMove = 500 # Doesn't need to be exact
+
 for ($i = 0; $i -lt $elements.Count; $i++) {
     $elements[$i] = New-Object System.Collections.Generic.Stack[char]
 }
@@ -41,8 +44,9 @@ Get-Content $FileName
         }
     } elseif ($_ -match $patternAction) {
 
-        PrintElements
-        $_
+        $percentComplete = [Math]::Max([Math]::Min((($boxesMoved++ / $boxesExpectedToMove)), 1), 0.01) * 100
+        Write-Progress -Activity "Moving boxes" -Status "Processing command: $_" -PercentComplete $percentComplete
+        Start-Sleep -Milliseconds 5
 
         $numberOfBoxes = [int]$Matches[1]
         $from          = $elements[[int]$Matches[2] - 1]
@@ -64,6 +68,9 @@ Get-Content $FileName
 while ($Host.UI.RawUI.KeyAvailable) {
     $host.ui.rawui.readkey("NoEcho,IncludeKeyup") | Out-Null
 }
-# [Console]::SetCursorPosition(0, $cursorTop)
-# [Console]::CursorVisible = $true
+
+Write-Progress -Activity "Moving boxes" -PercentComplete 100
+Start-Sleep -Milliseconds 200
+Write-Progress -Activity "Moving boxes" -Completed
+Start-Sleep -Milliseconds 200
 PrintElements
