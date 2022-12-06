@@ -5,9 +5,9 @@ param (
 )
 
 $patternCapture = '^.([A-Z ]). .([A-Z ]). .([A-Z ]). .([A-Z ]). .([A-Z ]). .([A-Z ]). .([A-Z ]). .([A-Z ]). .([A-Z ]).'
+$patternAction = 'move (\d+) from (\d+) to (\d+)'
 # $cursorTop = [Console]::GetCursorPosition().Item2
 $workspace = "`n`n`n`n`n`n`n`n`n`n`n`n"
-$workspaceComplete = $false
 # [Console]::CursorVisible = $false
 $elements = New-Object System.Collections.Generic.Stack[char][] 9
 
@@ -21,13 +21,12 @@ Get-Content $FileName
     if (!$workspaceComplete) {
         $workspace += "$_`n"
         if ($_ -match $patternCapture ) {
-            for ($i = 1; $i -lt $Matches.Count; $i++) {
-                $elements[$i - 1].Push($Matches[$i])
+            for ($i = 1; $i -lt $elements.Count; $i++) {
+                $elements[$i].Push($Matches[$i + 1]) | Out-Null
             }
-        } else {
-            $workspaceComplete = $true
         }
-    } else {
+    } elseif ($_ -match $patternAction) {
+        $_
         # [Console]::SetCursorPosition(0, $cursorTop)
         # Write-Host -NoNewLine "x"
         # [Console]::SetCursorPosition(5, $cursorTop)
