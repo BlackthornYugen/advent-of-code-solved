@@ -8,22 +8,47 @@ $patternStack = '^.([1A-Z ]). .([2A-Z ]). .([3A-Z ]). .([4A-Z ]). .([5A-Z ]). .(
 $patternStackMatches = New-Object System.Collections.Generic.List[Hashtable]
 $patternAction = 'move (\d+) from (\d+) to (\d+)'
 $elements = New-Object System.Collections.Generic.Stack[char][] 9
+$cursorTop = [Console]::GetCursorPosition().Item2
+$drawHeight = 50
 
 for ($i = 0; $i -lt $elements.Count; $i++) {
     $elements[$i] = New-Object System.Collections.Generic.Stack[char]
 }
 
 function PrintElements {
-    $elements | ForEach-Object {
-        if ($_.Count) {
-            Write-Host -NoNewline $_.Peek()
+    try {
+        [Console]::CursorVisible = $false
+        $elements | ForEach-Object {
+            if ($_.Count) {
+                Write-Host -NoNewline $_.Peek()
+            }
         }
+        Write-Host ""
+        for ($i = 0; $i -lt $elements.Count; $i++) {
+            $boxes = $elements[$i].ToArray()
+
+            for ($j = 0; $j -lt $drawHeight; $j++) {
+                [Console]::SetCursorPosition($i * 4, $cursorTop + $drawHeight - $j)
+                if (!$boxes[$j]) {
+                    Write-Host -NoNewline "    "
+                }
+            }
+
+            for ($j = 0; $j -lt $boxes.Count; $j++) {
+                Start-Sleep -Milliseconds 66
+                [Console]::SetCursorPosition($i * 4, $cursorTop + $drawHeight - $j)
+                Write-Host -NoNewline " [$($boxes[$j])]"
+            }
+
+        }
+    } finally {
+        [Console]::SetCursorPosition(0, $cursorTop)
+        [Console]::CursorVisible = $true
     }
-    Write-Host ""
 }
 
 Get-Content $FileName
-| Select-Object
+| Select-Object -First 12
 | ForEach-Object {
 
     if ($_ -match $patternStack ) {
@@ -40,9 +65,7 @@ Get-Content $FileName
             $patternStackMatches.Add($Matches)
         }
     } elseif ($_ -match $patternAction) {
-
         PrintElements
-        $_
 
         $numberOfBoxes = [int]$Matches[1]
         $from          = $elements[[int]$Matches[2] - 1]
