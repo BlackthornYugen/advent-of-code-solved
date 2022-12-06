@@ -4,7 +4,7 @@ param (
     [string]$FileName = "./2022/5.input"
 )
 
-$patternStack = '^.([1A-Z ]). .([2A-Z ]). .([3A-Z ]). .([4A-Z ]). .([5A-Z ]). .([6A-Z ]). .([7A-Z ]). .([8A-Z ]). .([9A-Z ]).'
+$patternStack = '^'
 $patternStackMatches = New-Object System.Collections.Generic.List[Hashtable]
 $patternAction = 'move (\d+) from (\d+) to (\d+)'
 $elements = New-Object System.Collections.Generic.Stack[char][] 9
@@ -28,6 +28,13 @@ function PrintElements {
 Get-Content $FileName
 | Select-Object
 | ForEach-Object {
+
+    if ($patternStack -eq '^') {
+        for ($i = 0; $i -lt (($_.Length + 1) / 4); $i++) {
+            $patternStack += ".([$($i + 1)A-Z ]). "
+        }
+        $patternStack = $patternStack.Trim()
+    }
 
     if ($_ -match $patternStack ) {
         if ( $Matches[1] -eq "1" ) {
