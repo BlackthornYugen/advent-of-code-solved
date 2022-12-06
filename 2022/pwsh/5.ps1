@@ -47,9 +47,14 @@ Get-Content $FileName
         $numberOfBoxes = [int]$Matches[1]
         $from          = $elements[[int]$Matches[2] - 1]
         $to            = $elements[[int]$Matches[3] - 1]
+        $buffer        = New-Object char[] $numberOfBoxes
 
-        for ($i = 0; $i -lt $numberOfBoxes; $i++) {
-            $to.push($from.Pop())
+        for ($i = 0; $i -lt $buffer.Count; $i++) {
+            $buffer[$i] = $from.Pop()
+        }
+
+        for ($i = $buffer.Count - 1; $i -ge 0 ; $i--) {
+            $to.Push($buffer[$i])
         }
     }
 }
