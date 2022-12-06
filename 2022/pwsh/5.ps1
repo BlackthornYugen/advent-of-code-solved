@@ -1,13 +1,13 @@
 #/usr/bin/env pwsh
 
 param (
-    [string]$FileName = "./2022/5.input.sample"
+    [string]$FileName = "./2022/5.input"
 )
 
 $patternStack = '^.([1A-Z ]). .([2A-Z ]). .([3A-Z ]). .([4A-Z ]). .([5A-Z ]). .([6A-Z ]). .([7A-Z ]). .([8A-Z ]). .([9A-Z ]).'
 $patternStackMatches = New-Object System.Collections.Generic.List[Hashtable]
 $patternAction = 'move (\d+) from (\d+) to (\d+)'
-$elements = New-Object System.Collections.Generic.Stack[char][] 3
+$elements = New-Object System.Collections.Generic.Stack[char][] 9
 
 for ($i = 0; $i -lt $elements.Count; $i++) {
     $elements[$i] = New-Object System.Collections.Generic.Stack[char]
@@ -47,14 +47,9 @@ Get-Content $FileName
         $numberOfBoxes = [int]$Matches[1]
         $from          = $elements[[int]$Matches[2] - 1]
         $to            = $elements[[int]$Matches[3] - 1]
-        $buffer        = New-Object char[] $numberOfBoxes
 
-        for ($i = 0; $i -lt $buffer.Count; $i++) {
-            $buffer[$i] = $from.Pop()
-        }
-
-        for ($i = $buffer.Count - 1; $i -ge 0 ; $i--) {
-            $to.Push($buffer[$i])
+        for ($i = 0; $i -lt $numberOfBoxes; $i++) {
+            $to.push($from.Pop())
         }
     }
 }
