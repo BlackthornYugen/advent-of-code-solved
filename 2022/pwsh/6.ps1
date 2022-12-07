@@ -7,8 +7,8 @@ param (
 
 $messages = New-Object Collections.Generic.List[PSCustomObject]
 
-$start_of_packet_marker_length = 4
-$start_of_message_marker_length = 14
+$packetMarkerLength = 4
+$messageMarkerLength = 14
 
 function Test-Marker() {
     param (
@@ -26,7 +26,6 @@ function Test-Marker() {
                 Write-Progress -Activity "Marker check" -Id 2 -Completed
                 return $false
             }
-            # Write-Error "$i - $j"
         }
     }
     Write-Progress -Activity "Marker check" -Id 2 -Completed
@@ -34,8 +33,8 @@ function Test-Marker() {
 }
 
 Get-Content $FileName | ForEach-Object {
-    $scan_size = $start_of_packet_marker_length
-
+    $scanLength = $packetMarkerLength
+    $statusPrefix = "Possible Packet Marker"
 
     $message = [PSCustomObject]@{
         PacketMarker  = -1
@@ -44,19 +43,20 @@ Get-Content $FileName | ForEach-Object {
     }
     $messages.Add($message)
 
-    for ($i = 0; $i -lt $_.Length - $scan_size; $i++) {
-        $candidate = $_.Substring($i, $scan_size)
+    for ($i = 0; $i -lt $_.Length - $scanLength; $i++) {
+        $candidate = $_.Substring($i, $scanLength)
         Write-Progress -Activity "Considering $($_.Substring(0, 5))...$($_.Substring($_.Length - 5, 5))" -Id 1 `
-            -Status "Possible Marker $candidate... $($i + 1) / $($_.Length - 3)" `
+            -Status "$statusPrefix $candidate... $($i + 1) / $($_.Length - 3)" `
             -PercentComplete ((($i + 1) / $_.Length) * 100)
         
         if (Test-Marker $candidate) {
             if ($message.PacketMarker -gt 0) {
-                $message.MessageMarker = $i + $scan_size
+                $message.MessageMarker = $i + $scanLength
                 break
             } else {
-                $message.PacketMarker = $i + $scan_size
-                $scan_size = $start_of_message_marker_length
+                $message.PacketMarker = $i + $scanLength
+                $scanLength = $messageMarkerLength
+                $statusPrefix = "Possible Message Marker"
             }
             
         }
