@@ -4,7 +4,6 @@ param (
     [string]$FileName = "./2022/6.input"
 )
 
-
 $messages = New-Object Collections.Generic.List[PSCustomObject]
 
 $packetMarkerLength = 4
@@ -62,6 +61,6 @@ Get-Content $FileName | ForEach-Object {
         }
     }
 }
-Start-Sleep -Milliseconds 300
+# Start-Sleep -Milliseconds 300
 Write-Progress "Activity" -Completed
 $messages
