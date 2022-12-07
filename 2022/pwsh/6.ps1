@@ -5,7 +5,10 @@ param (
 )
 
 
-$results =  New-Object Collections.Generic.List[int]
+$messages = New-Object Collections.Generic.List[PSCustomObject]
+
+$start_of_packet_marker_length = 4
+$start_of_message_marker_length = 14
 
 function Test-Marker() {
     param (
@@ -31,20 +34,34 @@ function Test-Marker() {
 }
 
 Get-Content $FileName | ForEach-Object {
-    for ($i = 3; $i -lt $_.Length; $i++) {
-        # Start-Sleep -Milliseconds 750
-        $candidate = $_.Substring($i - 3, 4)
+    $scan_size = $start_of_packet_marker_length
+
+
+    $message = [PSCustomObject]@{
+        PacketMarker  = -1
+        MessageMarker = -1
+        Buffer = $_
+    }
+    $messages.Add($message)
+
+    for ($i = 0; $i -lt $_.Length - $scan_size; $i++) {
+        $candidate = $_.Substring($i, $scan_size)
         Write-Progress -Activity "Considering $($_.Substring(0, 5))...$($_.Substring($_.Length - 5, 5))" -Id 1 `
             -Status "Possible Marker $candidate... $($i + 1) / $($_.Length - 3)" `
             -PercentComplete ((($i + 1) / $_.Length) * 100)
         
         if (Test-Marker $candidate) {
-            # $i
-            $results.Add($i + 1)
-            break;
+            if ($message.PacketMarker -gt 0) {
+                $message.MessageMarker = $i + $scan_size
+                break
+            } else {
+                $message.PacketMarker = $i + $scan_size
+                $scan_size = $start_of_message_marker_length
+            }
+            
         }
     }
 }
 Start-Sleep -Milliseconds 300
 Write-Progress "Activity" -Completed
-$results
+$messages
