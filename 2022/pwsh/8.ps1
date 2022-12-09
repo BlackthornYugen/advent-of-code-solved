@@ -4,19 +4,6 @@ param (
     [string]$FileName = "./2022/8.input"
 )
 
-
-
-# Read Data into 2d array? 
-# Loop from 1,1 -> 3,3 (exlcuding edges)
-# Loop over north/east/south/west directions
-
-[System.Tuple[int,int][]] $directions = @(
-    [System.Tuple]::Create( -1,  0 ) # North
-    [System.Tuple]::Create(  0,  1 ) # East
-    [System.Tuple]::Create(  1,  0 ) # Sout
-    [System.Tuple]::Create(  0, -1 ) # West
-)
-
 function Build-Forest() 
 {
     [CmdletBinding()]
@@ -59,6 +46,13 @@ function Test-Tree()
 
         [Parameter(Mandatory=$true)]
         [int] $y
+    )
+
+    [System.Tuple[int,int][]] $directions = @(
+        [System.Tuple]::Create( -1,  0 ) # North
+        [System.Tuple]::Create(  0,  1 ) # East
+        [System.Tuple]::Create(  1,  0 ) # Sout
+        [System.Tuple]::Create(  0, -1 ) # West
     )
 
     $width = $forest[0].Count
