@@ -77,11 +77,9 @@ Get-Content $FileName | ForEach-Object {
         $distance  = [int]$Matches[2]
 
         for ($i = 0; $i -lt $distance; $i++) {
-            Clear-Host
-
             if ($DrawThings)
             {
-                draw $tails[$KnotCount-1].Item1 $tailPos.Item2 "#"
+                draw $tails[$KnotCount-1].Item1 $tails[$KnotCount-1].Item2 "#"
                 draw $head.Item1 $head.Item2 " "
             }
 
@@ -90,7 +88,7 @@ Get-Content $FileName | ForEach-Object {
                 $head.Item2 + $direction.Item2
             )
 
-            for ($j = 0; $j -lt $KnotCount; $j++) {
+            for ($j = $KnotCount - 1; $j -ge 0 ; $j--) {
                 $tailPos = $tails[$j]
 
                 if ($j -eq 0)
@@ -127,7 +125,9 @@ Get-Content $FileName | ForEach-Object {
                 }
             }
             
-            if ($TailHistory.Contains($tails[$KnotCount - 1])) {
+            $tailPos = $tails[$KnotCount - 1]
+
+            if ($TailHistory.Contains($tailPos)) {
                 $TailHistory[$tailPos] = $TailHistory[$tailPos] + 1
             } else {
                 $TailHistory.Add($tailPos, 1)
