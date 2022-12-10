@@ -17,6 +17,28 @@ function Add-Vector {
     return [System.Tuple]::Create($a.Item1 + $b.Item1 * $factor, $a.Item2 + $b.Item2 * $factor)
 }
 
+function draw() {
+    param (
+        [int] $x,
+        [int] $y,
+        [string] $value,
+        [bool] $highlight = $false
+    )
+
+    [Console]::SetCursorPosition($x * 4, $y * 2)
+
+    if ($highlight) 
+    {
+        Write-Host -ForegroundColor Yellow $value -NoNewline
+    }
+    else
+    {
+        Write-Host $value -NoNewline
+    }
+
+    Start-Sleep -Milliseconds $DrawTime
+}
+
 if ($DrawThings)
 {
     Clear-Host
@@ -62,28 +84,6 @@ $TailMoves = @{
 }
 
 $TailHistory = @{}
-
-function draw() {
-    param (
-        [int] $x,
-        [int] $y,
-        [string] $value,
-        [bool] $highlight = $false
-    )
-
-    [Console]::SetCursorPosition($x * 4, $y * 2)
-
-    if ($highlight) 
-    {
-        Write-Host -ForegroundColor Yellow $value -NoNewline
-    }
-    else
-    {
-        Write-Host $value -NoNewline
-    }
-
-    Start-Sleep -Milliseconds $DrawTime
-}
 
 Get-Content $FileName | ForEach-Object {
     
