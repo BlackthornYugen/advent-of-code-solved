@@ -3,7 +3,7 @@
 param (
     [string]$FileName = "./2022/9.input.sample",
     [bool]$DrawThings = $false,
-    [int]$KnotCount = 10,
+    [int]$KnotCount = 9,
     [int]$DrawTime = 1
 )
 
@@ -25,7 +25,7 @@ function draw() {
         [bool] $highlight = $false
     )
 
-    [Console]::SetCursorPosition($x * 4, $y * 2)
+    [Console]::SetCursorPosition($x * 6, $y * 3)
 
     if ($highlight) 
     {
@@ -46,7 +46,7 @@ if ($DrawThings)
     [Console]::SetCursorPosition(0,0)
 }
 
-$head = [System.Tuple]::Create(15, 25)
+$head = [System.Tuple]::Create(12, 18)
 $tails = New-Object System.Collections.ArrayList $KnotCount
 
 for ($i = 0; $i -lt $KnotCount; $i++) {
@@ -95,13 +95,13 @@ Get-Content $FileName | ForEach-Object {
         for ($i = 0; $i -lt $distance; $i++) {
             if ($DrawThings)
             {
-                draw $tails[$KnotCount-1].Item1 $tails[$KnotCount-1].Item2 "#"
-                draw $head.Item1 $head.Item2 " "
+                draw $tails[$KnotCount-1].Item1 $tails[$KnotCount-1].Item2 "##"
+                draw $head.Item1 $head.Item2 "  "
             }
 
             $head = Add-Vector $head $direction
 
-            for ($j = $KnotCount - 1; $j -ge 0; $j--) {
+            for ($j = 0; $j -le $KnotCount; $j++) {
                 $tailPos = $tails[$j]
 
                 if ($j -eq 0)
@@ -122,7 +122,8 @@ Get-Content $FileName | ForEach-Object {
                     $tailPos = Add-Vector $newTailRelativePos $headPos
                     if ($DrawThings) {
                         if ($j -eq $KnotCount - 1) {
-                            draw $tails[$j].Item1 $tails[$j].Item2 "##"
+                            draw $tails[$j].Item1 $tails[$j].Item2 "  "
+                            draw $tails[$j].Item1 $tails[$j].Item2 ($TailHistory.Count)
                         } else {
                             draw $tails[$j].Item1 $tails[$j].Item2 "  "
                         }
@@ -133,8 +134,8 @@ Get-Content $FileName | ForEach-Object {
                 if ($DrawThings)
                 {
                     $highlight = if ($j % 2 -eq 0) { $true } else { $false }
-                    draw $head.Item1 $head.Item2 "H"
-                    draw $tailPos.Item1 $tailPos.Item2 "T$j"  -highlight $highlight
+                    draw $head.Item1 $head.Item2 " H "
+                    draw $tailPos.Item1 $tailPos.Item2 "T$($j + 1)"  -highlight $highlight
                 }
             }
             
