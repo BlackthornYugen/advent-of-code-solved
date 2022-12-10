@@ -1,8 +1,9 @@
 #/usr/bin/env pwsh
 
 param (
-    [string]$FileName = "./2022/9.input",
-    [bool]$DrawThings = $false
+    [string]$FileName = "./2022/9.input.sample",
+    [bool]$DrawThings = $false,
+    [int]$KnotCount = 10
 )
 
 if ($DrawThings)
@@ -12,8 +13,12 @@ if ($DrawThings)
     [Console]::SetCursorPosition(0,0)
 }
 
-$headPos = [System.Tuple]::Create(0, 0)
-$tailPos = $headPos
+$head = [System.Tuple]::Create(10, 15)
+$tails = New-Object System.Collections.ArrayList $KnotCount
+
+for ($i = 0; $i -lt $KnotCount; $i++) {
+    $tails.Add($head) | Out-Null
+}
 
 $Directions = @{
     U = [System.Tuple]::Create(  0, -1 )
@@ -46,14 +51,23 @@ function draw() {
     param (
         [int] $x,
         [int] $y,
-        [string] $value
+        [string] $value,
+        [bool] $highlight = $false
     )
 
     [Console]::SetCursorPosition($x * 4, $y * 2)
-    Write-Host $value -NoNewline
-    Start-Sleep -Milliseconds 200
+
+    if ($highlight) 
+    {
+        Write-Host -ForegroundColor Yellow $value -NoNewline
+    }
+    else
+    {
+        Write-Host $value -NoNewline
+    }
+
+    Start-Sleep -Milliseconds 15
 }
-# Write-Host "S" -NoNewline
 
 Get-Content $FileName | ForEach-Object {
     
@@ -63,40 +77,60 @@ Get-Content $FileName | ForEach-Object {
         $distance  = [int]$Matches[2]
 
         for ($i = 0; $i -lt $distance; $i++) {
-
-            # draw $tailPos.Item1 $tailPos.Item2 "#"
-            # draw $headPos.Item1 $headPos.Item2 " "
-
-            $headPos = [System.Tuple]::Create(
-                $headPos.Item1 + $direction.Item1,
-                $headPos.Item2 + $direction.Item2
-            )
-
-            $deltaPos = [System.Tuple]::Create(
-                $tailPos.Item1 - $headPos.Item1,
-                $tailPos.Item2 - $headPos.Item2
-            )
-
-            $newTailRelativePos = $TailMoves[$deltaPos]
-
-            if ($null -ne $newTailRelativePos)
-            {
-                $tailPos = [System.Tuple]::Create(
-                    $newTailRelativePos.Item1 + $headPos.Item1,
-                    $newTailRelativePos.Item2 + $headPos.Item2
-                )
-            }
-            
-            if ($TailHistory.Contains($tailPos)) {
-                $TailHistory[$tailPos] = $TailHistory[$tailPos] + 1
-            } else {
-                $TailHistory.Add($tailPos, 1)
-            }
+            Clear-Host
 
             if ($DrawThings)
             {
-                draw $headPos.Item1 $headPos.Item2 "H"
-                draw $tailPos.Item1 $tailPos.Item2 "T$($TailHistory[$tailPos])"
+                draw $tails[$KnotCount-1].Item1 $tailPos.Item2 "#"
+                draw $head.Item1 $head.Item2 " "
+            }
+
+            $head = [System.Tuple]::Create(
+                $head.Item1 + $direction.Item1,
+                $head.Item2 + $direction.Item2
+            )
+
+            for ($j = 0; $j -lt $KnotCount; $j++) {
+                $tailPos = $tails[$j]
+
+                if ($j -eq 0)
+                {
+                    $headPos = $head
+                }
+                else
+                {
+                    $headPos = $tails[$j - 1]
+                }
+
+                $deltaPos = [System.Tuple]::Create(
+                    $tailPos.Item1 - $headPos.Item1,
+                    $tailPos.Item2 - $headPos.Item2
+                )
+    
+                $newTailRelativePos = $TailMoves[$deltaPos]
+    
+                if ($null -ne $newTailRelativePos)
+                {
+                    $tailPos = [System.Tuple]::Create(
+                        $newTailRelativePos.Item1 + $headPos.Item1,
+                        $newTailRelativePos.Item2 + $headPos.Item2
+                    )
+
+                    $tails[$j] = $tailPos
+                }
+    
+                if ($DrawThings)
+                {
+                    $highlight = if ($j % 2 -eq 0) { $true } else { $false }
+                    draw $head.Item1 $head.Item2 "H"
+                    draw $tailPos.Item1 $tailPos.Item2 "T$j"  -highlight $highlight
+                }
+            }
+            
+            if ($TailHistory.Contains($tails[$KnotCount - 1])) {
+                $TailHistory[$tailPos] = $TailHistory[$tailPos] + 1
+            } else {
+                $TailHistory.Add($tailPos, 1)
             }
         }
 
