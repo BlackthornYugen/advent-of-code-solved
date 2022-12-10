@@ -6,6 +6,15 @@ param (
     [int]$KnotCount = 10
 )
 
+function Add-Vector {
+    param (
+        $a,
+        $b
+    )
+
+    return [System.Tuple]::Create($a.Item1 + $b.Item1, $a.Item2 + $b.Item2)
+}
+
 if ($DrawThings)
 {
     Clear-Host
@@ -43,6 +52,11 @@ $TailMoves = @{
     [System.Tuple]::Create( -2,  0 ) = $Directions.L
     [System.Tuple]::Create( -2,  1 ) = $Directions.L
     [System.Tuple]::Create( -2, -1 ) = $Directions.L
+    
+    [System.Tuple]::Create( -2, -2 ) = (Add-Vector $Directions.L $Directions.U)
+    [System.Tuple]::Create( -2,  2 ) = (Add-Vector $Directions.L $Directions.D)
+    [System.Tuple]::Create(  2, -2 ) = (Add-Vector $Directions.R $Directions.U)
+    [System.Tuple]::Create(  2,  2 ) = (Add-Vector $Directions.R $Directions.D)
 }
 
 $TailHistory = @{}
