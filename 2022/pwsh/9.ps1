@@ -3,16 +3,18 @@
 param (
     [string]$FileName = "./2022/9.input.sample",
     [bool]$DrawThings = $false,
-    [int]$KnotCount = 10
+    [int]$KnotCount = 10,
+    [int]$DrawTime = 1
 )
 
 function Add-Vector {
     param (
         $a,
-        $b
+        $b,
+        $factor = 1 # Used -1 for subtraction
     )
 
-    return [System.Tuple]::Create($a.Item1 + $b.Item1, $a.Item2 + $b.Item2)
+    return [System.Tuple]::Create($a.Item1 + $b.Item1 * $factor, $a.Item2 + $b.Item2 * $factor)
 }
 
 if ($DrawThings)
@@ -22,7 +24,7 @@ if ($DrawThings)
     [Console]::SetCursorPosition(0,0)
 }
 
-$head = [System.Tuple]::Create(10, 15)
+$head = [System.Tuple]::Create(15, 25)
 $tails = New-Object System.Collections.ArrayList $KnotCount
 
 for ($i = 0; $i -lt $KnotCount; $i++) {
@@ -80,7 +82,7 @@ function draw() {
         Write-Host $value -NoNewline
     }
 
-    Start-Sleep -Milliseconds 15
+    Start-Sleep -Milliseconds $DrawTime
 }
 
 Get-Content $FileName | ForEach-Object {
@@ -97,12 +99,9 @@ Get-Content $FileName | ForEach-Object {
                 draw $head.Item1 $head.Item2 " "
             }
 
-            $head = [System.Tuple]::Create(
-                $head.Item1 + $direction.Item1,
-                $head.Item2 + $direction.Item2
-            )
+            $head = Add-Vector $head $direction
 
-            for ($j = $KnotCount - 1; $j -ge 0 ; $j--) {
+            for ($j = $KnotCount - 1; $j -ge 0; $j--) {
                 $tailPos = $tails[$j]
 
                 if ($j -eq 0)
@@ -114,20 +113,20 @@ Get-Content $FileName | ForEach-Object {
                     $headPos = $tails[$j - 1]
                 }
 
-                $deltaPos = [System.Tuple]::Create(
-                    $tailPos.Item1 - $headPos.Item1,
-                    $tailPos.Item2 - $headPos.Item2
-                )
+                $deltaPos = Add-Vector $tailPos $headPos -factor -1
     
                 $newTailRelativePos = $TailMoves[$deltaPos]
     
                 if ($null -ne $newTailRelativePos)
                 {
-                    $tailPos = [System.Tuple]::Create(
-                        $newTailRelativePos.Item1 + $headPos.Item1,
-                        $newTailRelativePos.Item2 + $headPos.Item2
-                    )
-
+                    $tailPos = Add-Vector $newTailRelativePos $headPos
+                    if ($DrawThings) {
+                        if ($j -eq $KnotCount - 1) {
+                            draw $tails[$j].Item1 $tails[$j].Item2 "##"
+                        } else {
+                            draw $tails[$j].Item1 $tails[$j].Item2 "  "
+                        }
+                    }
                     $tails[$j] = $tailPos
                 }
     
@@ -147,13 +146,11 @@ Get-Content $FileName | ForEach-Object {
                 $TailHistory.Add($tailPos, 1)
             }
         }
-
     }
     else
     {
         throw "Invalid input `"$_`""
     }
-
 }
 
 if ($DrawThings) {
