@@ -175,6 +175,15 @@ for ($i = 0; $i -lt $RoundCount ; $i++) {
         -Status "$i of $RoundCount" `
         -PercentComplete ([Math]::Max(1,[Math]::Min(100, $i / $RoundCount * 100)))
     Step-Turn $Monkeys
+
+    while ($Host.UI.RawUI.KeyAvailable) {
+        $host.ui.rawui.readkey("NoEcho") | Out-Null
+        $monkeyBusiness = 1
+        $Monkeys | Sort-Object -Property ItemsHandled -Descending -Top 2 | ForEach-Object {
+            $monkeyBusiness = [System.Numerics.BigInteger]::Multiply($monkeyBusiness, $_.ItemsHandled)
+        }
+        Write-Error -Message "Current Monkey Buisness at ${i}: $monkeyBusiness"
+    }
 }
 
 # Part 1
