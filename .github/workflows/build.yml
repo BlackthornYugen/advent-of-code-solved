@@ -24,7 +24,7 @@ jobs:
         run: curl -fsSL https://git.io/shellspec | tee >(sha256sum) | sh -s -- --yes
 
       - name: Shellspec jq
-        run: shellspec spec/jq_spec.sh --output junit
+        run: shellspec spec/jq_spec.sh
 
       - name: Upload Unit Test Results
         if: always()
