@@ -2,12 +2,13 @@
 
 param (
     [string]$FileName = "./2022/11.input",
-    [int]$RoundCount = 20
+    [int]$RoundCount = 20,
+    [bool]$WorriesManaged = $true
 )
 
 class Monkey {
     [int] $Divisor
-    [Collections.Generic.List[int]] $Items
+    [Collections.Generic.List[bigint]] $Items
     [int[]] $Friends
     [char] $Operator
     [string] $Operand
@@ -25,7 +26,7 @@ class Monkey {
             throw "Unexpected operation: $Operation"
         }
 
-        $this.Items = New-Object Collections.Generic.List[Int]
+        $this.Items = New-Object 'Collections.Generic.List[System.Numerics.BigInteger]'
         foreach ($Item in $Items) {
             $this.Items.Add($Item)
         }
@@ -143,8 +144,10 @@ function Step-Turn() {
             }
             Write-Debug "$m inspects item with worry level of $item"
 
-            $item = [Math]::Floor($item / 3)
-            Write-Debug "Monkey gets bored with item. Worry level is divided by 3 to $item."
+            if ($WorriesManaged) {
+                $item = [Math]::Floor($item / 3)
+                Write-Debug "Monkey gets bored with item. Worry level is divided by 3 to $item."
+            }
 
             if (($item % $activeMonkey.Divisor) -eq 0)
             {
