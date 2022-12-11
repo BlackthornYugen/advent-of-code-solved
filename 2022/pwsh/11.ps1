@@ -189,4 +189,7 @@ Write-Progress `
 -Activity "Processing turn" `
 -Completed
 
-$monkeyBusiness
+[PSCustomObject]@{
+    MonkeyBusiness = $monkeyBusiness
+    Monkeys = $Monkeys
+}
