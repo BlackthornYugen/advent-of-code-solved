@@ -4,50 +4,26 @@ param (
     [string]$FileName = "./2022/12.input.sample"
 )
 
-function Draw() 
-{
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory, valueFromPipeline)]
-        [String] $Line
-    )
+$StartAltitude = 97
+$EndAltitude = 122
 
-    process {
-        for ($i = 0; $i -lt $Line.Length; $i++) {
-            if ($Line[$i] -gt 120) {
-                $colour = [System.ConsoleColor]::Red
-            } elseif ($Line[$i] -gt 110) {
-                $colour = [System.ConsoleColor]::DarkRed
-            } elseif ($Line[$i] -gt 105) {
-                $colour = [System.ConsoleColor]::Yellow
-            } elseif ($Line[$i] -gt 100) {
-                $colour = [System.ConsoleColor]::DarkYellow
-            } elseif ($Line[$i] -gt 95) {
-                $colour = [System.ConsoleColor]::DarkGreen
-            } elseif ($Line[$i] -gt 90) {
-                $colour = [System.ConsoleColor]::Green
-            } else {
-                $colour = $null
-            }
-
-            if ($null -ne $colour) {
-                Write-Host -NoNewline -BackgroundColor $colour $Line[$i]
-            }
-            else
-            {
-                Write-Host -NoNewline $Line[$i]
-            }
-        }
-        Write-Host ""
-    }
-    
-    end {
-        Write-Host " "
-    }
-
+$Directions = @{
+    U = [System.Tuple]::Create(  0, -1 )
+    R = [System.Tuple]::Create(  1,  0 )
+    D = [System.Tuple]::Create(  0,  1 )
+    L = [System.Tuple]::Create( -1,  0 )
 }
 
-function LoadMap() 
+function Add-Vector {
+    param (
+        $a,
+        $b
+    )
+
+    return [System.Tuple]::Create($a.Item1 + $b.Item1, $a.Item2 + $b.Item2)
+}
+
+function Get-Map() 
 {
     [CmdletBinding()]
     param (
@@ -71,12 +47,14 @@ function LoadMap()
             $char = $Line[$x]
             $location = [System.Tuple]::Create($x, $y)
 
-            if ($char -eq "S") 
+            if ($char -ceq "S") 
             {
+                $result.Map.Add($location, $StartAltitude)
                 $result.Start = $location
             }
-            elseif ($char -eq "E") 
+            elseif ($char -ceq "E")
             {
+                $result.Map.Add($location, $EndAltitude)
                 $result.End = $location
             }
             else 
@@ -94,16 +72,50 @@ function LoadMap()
 
 }
 
-
-function FindPath {
+function Get-Path {
     param (
-        [Collections.Generic.Dictionary]$map
+        [Collections.Generic.Dictionary[System.Tuple[int,int], int]]$locationsByAltitude,
+        [System.Tuple[int, int]]$start,
+        [System.Tuple[int, int]]$end
     )
     
-    [System.Collections.Generic.PriorityQueue[System.Tuple]]$queue = `
-        New-Object 'System.Collections.Generic.PriorityQueue[System.Tuple]'
+    $queue = New-Object 'System.Collections.Generic.PriorityQueue[System.Tuple[int,int], int]'
+    $locationsByDistance = New-Object 'Collections.Generic.Dictionary[System.Tuple[int,int], int]'
+    $previousLocationByLocation = New-Object 'Collections.Generic.Dictionary[System.Tuple[int,int], System.Tuple[int,int]]'
+    $breadcrumbByLocation = New-Object 'Collections.Generic.Dictionary[System.Tuple[int,int], String]'
+    $locationsByDistance.Add($start, 0)
+    $breadcrumbByLocation.Add($start, "")
+    $queue.Enqueue($start, 0)
 
-    $queue
+    while ($queue.Count -gt 0) {
+        $position = $queue.Dequeue()
+        $altitude = $locationsByAltitude[$position]
+        $distance = $locationsByDistance[$position]
+        $breadcrumb = $breadcrumbByLocation[$position]
+
+        if ($altitude -eq $EndAltitude) {
+            Write-Host "${distance}: $breadcrumb"
+        }
+        
+        foreach ($directionName in $Directions.Keys) {
+            $direction = $Directions[$directionName]
+            $locationToConsider = Add-Vector $direction $position
+            $altitudeToConsider = $locationsByAltitude[$locationToConsider]
+            
+            if ((-not $locationsByDistance.ContainsKey($locationToConsider)) -and
+                ($null -ne $altitudeToConsider) -and
+                ($altitude -ge ($altitudeToConsider - 1)))
+            {
+                $breadcrumbByLocation.Add($locationToConsider, $breadcrumb + $directionName)
+                $locationsByDistance.Add($locationToConsider, ($distance + 1))
+                $previousLocationByLocation.Add($locationToConsider, $position)
+                $queue.Enqueue($locationToConsider, $distance)
+            }
+            # Write-Debug "Altitude $locationToConsider $altitudeToConsider"
+        }
+    }
 }
 
-Get-Content $FileName | LoadMap
+$mapData = Get-Content $FileName | Get-Map
+
+Get-Path $mapData.Map $mapData.Start $mapData.End
