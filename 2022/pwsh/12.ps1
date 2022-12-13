@@ -1,9 +1,9 @@
 #/usr/bin/env pwsh
 
 param (
-    [string]$FileName = "./2022/12.input.sample",
+    [string]$FileName = "./2022/12.input",
     [bool]$StartLow = $true,
-    [int]$FinishAtElevation = $null
+    [int]$FinishAtElevation = -1
 )
 
 $StartAltitude = 97
@@ -93,12 +93,11 @@ function Get-Path {
         [Collections.Generic.Dictionary[System.Tuple[int,int], int]]$locationsByAltitude,
         [System.Tuple[int, int]]$start,
         [System.Tuple[int, int]]$end,
-        [int]$FinishAtElevation = $null
+        [int]$FinishAtElevation = -1
     )
     
     $queue = New-Object 'System.Collections.Generic.PriorityQueue[System.Tuple[int,int], int]'
     $locationsByDistance = New-Object 'Collections.Generic.Dictionary[System.Tuple[int,int], int]'
-    $previousLocationByLocation = New-Object 'Collections.Generic.Dictionary[System.Tuple[int,int], System.Tuple[int,int]]'
     $breadcrumbByLocation = New-Object 'Collections.Generic.Dictionary[System.Tuple[int,int], String]'
     $locationsByDistance.Add($start, 0)
     $breadcrumbByLocation.Add($start, "")
@@ -110,36 +109,46 @@ function Get-Path {
         $distance = $locationsByDistance[$position]
         $breadcrumb = $breadcrumbByLocation[$position]
 
-        if (($null -ne $FinishAtElevation) -and ($altitude -eq $FinishAtElevation)) {
-            Write-Host -ForegroundColor Green "Checking from $position to $start... "
-            Get-Path $locationsByAltitude $position $start
-        }
-
-        if ($position -eq $end) {
+        if ($position -eq $end -or (($null     -ne $FinishAtElevation) -and 
+                                    ($altitude -eq $FinishAtElevation))) {
             Write-Host -NoNewline "Result of "
             Write-Host -NoNewline -ForegroundColor Red "${start}"
             Write-Host -NoNewline " to "
-            Write-Host -NoNewline -ForegroundColor Red "${end}"
+            Write-Host -NoNewline -ForegroundColor Red "${position}"
             Write-Host -NoNewline  ": "
             Write-Host -NoNewline -BackgroundColor Red "${distance}"
             Write-Host ": $breadcrumb"
+            break
         }
         
         foreach ($directionName in $Directions.Keys) {
             $direction = $Directions[$directionName]
             $locationToConsider = Add-Vector $direction $position
             $altitudeToConsider = $locationsByAltitude[$locationToConsider]
+
+            if ($null -ne $altitudeToConsider) {
+                if ($FinishAtElevation -ge 0) 
+                { 
+                    $validAltitude = $altitude -le ($altitudeToConsider + 1) 
+                } 
+                else 
+                { 
+                    $validAltitude = $altitude -ge ($altitudeToConsider - 1) 
+                }
+            } else {
+                $validAltitude = $false
+            }
             
-            if ((-not $locationsByDistance.ContainsKey($locationToConsider)) -and
-                ($null -ne $altitudeToConsider) -and
-                ($altitude -ge ($altitudeToConsider - 1)))
+            $newLocation = -not $locationsByDistance.ContainsKey($locationToConsider)
+            
+            if ($newLocation -and $validAltitude)
             {
+                Write-Debug "`nFrom: $position@$altitude`nTo $locationToConsider@$altitudeToConsider"
+
                 $breadcrumbByLocation.Add($locationToConsider, $breadcrumb + $directionName)
                 $locationsByDistance.Add($locationToConsider, ($distance + 1))
-                $previousLocationByLocation.Add($locationToConsider, $position)
                 $queue.Enqueue($locationToConsider, $distance)
             }
-            Write-Debug "Altitude $locationToConsider $altitudeToConsider"
         }
     }
 }
