@@ -1,7 +1,9 @@
 #/usr/bin/env pwsh
 
 param (
-    [string]$FileName = "./2022/12.input.sample"
+    [string]$FileName = "./2022/12.input.sample",
+    [bool]$StartLow = $true,
+    [int]$FinishAtElevation = $null
 )
 
 $StartAltitude = 97
@@ -50,12 +52,26 @@ function Get-Map()
             if ($char -ceq "S") 
             {
                 $result.Map.Add($location, $StartAltitude)
-                $result.Start = $location
+                if ($StartLow)
+                {
+                    $result.Start = $location
+                }
+                else
+                {
+                    $result.End = $location
+                }
             }
             elseif ($char -ceq "E")
             {
                 $result.Map.Add($location, $EndAltitude)
-                $result.End = $location
+                if (!$StartLow)
+                {
+                    $result.Start = $location
+                }
+                else
+                {
+                    $result.End = $location
+                }
             }
             else 
             {
@@ -76,7 +92,8 @@ function Get-Path {
     param (
         [Collections.Generic.Dictionary[System.Tuple[int,int], int]]$locationsByAltitude,
         [System.Tuple[int, int]]$start,
-        [System.Tuple[int, int]]$end
+        [System.Tuple[int, int]]$end,
+        [int]$FinishAtElevation = $null
     )
     
     $queue = New-Object 'System.Collections.Generic.PriorityQueue[System.Tuple[int,int], int]'
@@ -93,8 +110,19 @@ function Get-Path {
         $distance = $locationsByDistance[$position]
         $breadcrumb = $breadcrumbByLocation[$position]
 
-        if ($altitude -eq $EndAltitude) {
-            Write-Host "${distance}: $breadcrumb"
+        if (($null -ne $FinishAtElevation) -and ($altitude -eq $FinishAtElevation)) {
+            Write-Host -ForegroundColor Green "Checking from $position to $start... "
+            Get-Path $locationsByAltitude $position $start
+        }
+
+        if ($position -eq $end) {
+            Write-Host -NoNewline "Result of "
+            Write-Host -NoNewline -ForegroundColor Red "${start}"
+            Write-Host -NoNewline " to "
+            Write-Host -NoNewline -ForegroundColor Red "${end}"
+            Write-Host -NoNewline  ": "
+            Write-Host -NoNewline -BackgroundColor Red "${distance}"
+            Write-Host ": $breadcrumb"
         }
         
         foreach ($directionName in $Directions.Keys) {
@@ -111,11 +139,11 @@ function Get-Path {
                 $previousLocationByLocation.Add($locationToConsider, $position)
                 $queue.Enqueue($locationToConsider, $distance)
             }
-            # Write-Debug "Altitude $locationToConsider $altitudeToConsider"
+            Write-Debug "Altitude $locationToConsider $altitudeToConsider"
         }
     }
 }
 
 $mapData = Get-Content $FileName | Get-Map
 
-Get-Path $mapData.Map $mapData.Start $mapData.End
+Get-Path -FinishAtElevation $FinishAtElevation $mapData.Map $mapData.Start $mapData.End
