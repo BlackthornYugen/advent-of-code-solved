@@ -27,7 +27,7 @@ $text_to_numeric
 
 
 split("\n")
-    | map( normalize(.) |
+    | map( normalize(ascii_downcase) |
         (capture("(?<first>\\d).*(?<second>\\d)") // capture("(?<first>\\d).*"))
           | "\(.first)\(.second // .first)" | tonumber | debug
     ) | add
