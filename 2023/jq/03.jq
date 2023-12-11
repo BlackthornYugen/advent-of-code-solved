@@ -11,7 +11,7 @@ def exclude_collisions($window):
          $window[1][math_max(0; .offset - 1)      : .offset              ] +
          $window[1][math_max(0; .offset + .length): .offset + .length + 1] +
          $window[2][math_max(0; .offset - 1)      : .offset + .length + 1]
-         | gsub("[\\.\\d]";"") | if length == 0 then $part_candidate else "" end
+         | gsub("[\\.\\d]";"") | if length != 0 then $part_candidate else "" end
      | select (length > 0) | tonumber )
 ;
 
@@ -25,4 +25,4 @@ split("\n") | . + ["",""] | [foreach .[] as $line (
     # extract
     .window as $window
      | .parts = ( [.window[1] | match("\\d+"; "g") ] | exclude_collisions($window))
-)] | [.[].parts ] | flatten | add
+)] | [.[].parts ] | flatten | debug | add
