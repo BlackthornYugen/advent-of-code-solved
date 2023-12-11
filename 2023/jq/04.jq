@@ -12,12 +12,12 @@ def score_card:
     select(length > 0) | length - 1 | exp2
 ;
 
-def innter_join($left; $right):
+def inner_join($left; $right):
     $left | reduce .[] as $value ([] ; . + if ($right | index($value)) then [$value] else null end) 
 ;
 
 split("\n") | map(
     capture("^card +(?<card>\\d+): (?<numbers>.*) *\\| *(?<winning_numbers>.*)$"; "i") |
     .numbers = parse_numbers(.numbers) |
-    .winning_numbers = innter_join(parse_numbers(.winning_numbers); .numbers)
+    .winning_numbers = inner_join(parse_numbers(.winning_numbers); .numbers)
 ) | [.[].winning_numbers | score_card] | add 
