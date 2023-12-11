@@ -6,7 +6,6 @@ def parse_numbers($numbers):
         | map(select(length > 0) 
                 | tonumber)
 ;
-
 def score_card:
     # 1 point for first match and doubled for
     # every additional match
@@ -18,7 +17,7 @@ def innter_join($left; $right):
 ;
 
 split("\n") | map(
-    capture("^card (?<card>\\d+): (?<numbers>.*) *\\| *(?<winning_numbers>.*)$"; "i") |
+    capture("^card +(?<card>\\d+): (?<numbers>.*) *\\| *(?<winning_numbers>.*)$"; "i") |
     .numbers = parse_numbers(.numbers) |
     .winning_numbers = innter_join(parse_numbers(.winning_numbers); .numbers)
 ) | [.[].winning_numbers | score_card] | add 
