@@ -26,17 +26,22 @@ def parse_input:
 
 ["north", "east", "south", "west"] as $direction_names |
 
-def trace_ray($x; $y; $direction):
+def trace_rays:
     . as $table |
-    ($direction_names | index($direction)) as $z |
-    .cells[$x][$y].light_directions[$z] = true |
-    foreach $directions[] as $direction (
-        {table: $table}
+    foreach .rays[] as $ray (
+        $table + {rays: []}
         ;
-        . + $direction
+        ($directions[$ray.direction]) as $vector |
+        ($ray.x + $vector.x) as $next_x |
+        ($ray.y + $vector.y) as $next_y | 
+        if   (.cells[$next_y][$next_x] != null) and $next_x >= 0 and $next_y >= 0
+        then (.cells[$next_y][$next_x].light_directions[$direction_names | index($ray.direction)]) = true | 
+              .rays += [{x: $next_x, y: $next_y, direction: $ray.direction}] 
+        else . 
+        end
         ;
-        debug
-    ) | $table + {rays: []}
+        if (.rays | length | debug > 0) then debug | trace_rays else . end
+    ) | .
 ;
 
-parse_input | trace_ray(0; 0; "east")
+parse_input | . + {rays: [{x: -1, y: 0, direction: "east"}]} | trace_rays
