@@ -27,27 +27,38 @@ def parse_input:
 ["north", "east", "south", "west"] as $direction_names |
 
 def trace_ray($ray):
-        ($directions[$ray.direction]) as $vector |
-        ($ray.x + $vector.x) as $next_x |
-        ($ray.y + $vector.y) as $next_y | 
+        ($directions[$ray.direction]) as $vector 
+        | ($ray.x + $vector.x) as $next_x
+        | ($ray.y + $vector.y) as $next_y
+        | (.cells[$next_y][$next_x]) as $type
+        |
         if   (.cells[$next_y][$next_x] != null) and $next_x >= 0 and $next_y >= 0
-        then (.cells[$next_y][$next_x].light_directions[$direction_names | index($ray.direction)]) = true | 
-              .rays += [{x: $next_x, y: $next_y, direction: $ray.direction}] 
+        then (.cells[$next_y][$next_x].light_directions[$direction_names | index($ray.direction)]) = true
+            | .rays += [{x: $next_x, y: $next_y, direction: $ray.direction}] 
         else . 
         end
 ;
+
 def trace_rays:
     . as $table |
-    foreach .rays[] as $ray (
+    [foreach .rays[] as $ray (
         $table + {rays: []}
         ;
         trace_ray($ray)
         ;
-        if (.rays | length | debug > 0) 
-        then trace_rays 
-        else . 
+        if (.rays | length) > 0
+        then trace_rays
+        else .
         end
-    ) | .
+    )] | .[-1]
 ;
 
-parse_input | . + {rays: [{x: -1, y: 0, direction: "east"}, {x: 0, y: 4, direction: "north"}]} | trace_rays
+def print:
+    .cells[] | reduce .[] as $cell (
+        "";
+        . + if ($cell.light_directions | any) then "#" else $cell.type end
+    )
+;
+parse_input 
+    | . + {rays: [{x: -1, y: 0, direction: "east"}, {x: 0, y: 2, direction: "north"}]} 
+    | trace_rays | print
