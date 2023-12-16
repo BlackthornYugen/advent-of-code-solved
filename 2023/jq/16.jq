@@ -5,13 +5,13 @@ def cell_ctor($type):
 ;
 
 def process_line:
-    .[0:2] | [reduce scan(".") as $cell (
+    [reduce scan(".") as $cell (
         [] ; . + [cell_ctor($cell)]
     )]
 ;
 
 def parse_input:
-    split("\n") | .[0:2] | reduce .[] as $line (
+    split("\n") | reduce .[] as $line (
         {cells: []} ;
         .cells += ($line | process_line)
     )
@@ -26,11 +26,7 @@ def parse_input:
 
 ["north", "east", "south", "west"] as $direction_names |
 
-def trace_rays:
-    . as $table |
-    foreach .rays[] as $ray (
-        $table + {rays: []}
-        ;
+def trace_ray($ray):
         ($directions[$ray.direction]) as $vector |
         ($ray.x + $vector.x) as $next_x |
         ($ray.y + $vector.y) as $next_y | 
@@ -39,9 +35,19 @@ def trace_rays:
               .rays += [{x: $next_x, y: $next_y, direction: $ray.direction}] 
         else . 
         end
+;
+def trace_rays:
+    . as $table |
+    foreach .rays[] as $ray (
+        $table + {rays: []}
         ;
-        if (.rays | length | debug > 0) then debug | trace_rays else . end
+        trace_ray($ray)
+        ;
+        if (.rays | length | debug > 0) 
+        then trace_rays 
+        else . 
+        end
     ) | .
 ;
 
-parse_input | . + {rays: [{x: -1, y: 0, direction: "east"}]} | trace_rays
+parse_input | . + {rays: [{x: -1, y: 0, direction: "east"}, {x: 0, y: 4, direction: "north"}]} | trace_rays
