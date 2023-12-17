@@ -11,7 +11,7 @@ def process_line:
 ;
 
 def parse_input:
-    split("\n") | reduce .[] as $line (
+    split("\n") | map(select(length > 0)) | reduce .[] as $line (
         {cells: []} ;
         .cells += ($line | process_line)
     )
@@ -26,39 +26,70 @@ def parse_input:
 
 ["north", "east", "south", "west"] as $direction_names |
 
+def to_name:
+    . as $vector
+    | $directions | keys | reduce .[] as $direction (
+        null;
+        if
+            $directions[$direction] == $vector
+        then 
+            $direction
+        else 
+            .
+        end
+    )
+;
+
 def trace_ray($ray):
-        ($directions[$ray.direction]) as $vector 
-        | ($ray.x + $vector.x) as $next_x
-        | ($ray.y + $vector.y) as $next_y
-        | (.cells[$next_y][$next_x]) as $type
+    if (.cells[$ray.y][$ray.x] != null) and
+       ($ray.x >= 0 and $ray.y >= 0) and
+       (.cells[$ray.y][$ray.x].light_directions[$direction_names | index($ray.direction)]) != true
+    then
+        (.cells[$ray.y][$ray.x].light_directions[$direction_names | index($ray.direction)]) = true
+        | ($directions[$ray.direction]) as $vector
+        | (.cells[$ray.y][$ray.x].type) as $type
         |
-        if   (.cells[$next_y][$next_x] != null) and $next_x >= 0 and $next_y >= 0
-        then (.cells[$next_y][$next_x].light_directions[$direction_names | index($ray.direction)]) = true
-            | .rays += [{x: $next_x, y: $next_y, direction: $ray.direction}] 
+        if   $type == "." or 
+            ($type == "|" and $vector.x == 0) or 
+            ($type == "-" and $vector.y == 0)
+        then .rays += [{x: ($ray.x + $vector.x), y: ($ray.y + $vector.y), direction: $ray.direction}]
+        elif $type == "|"
+        then .rays += [{x: $ray.x, y: ($ray.y + 1), direction: "south"},
+                       {x: $ray.x, y: ($ray.y - 1), direction: "north"}]
+        elif $type == "-"
+        then .rays += [{x: ($ray.x + 1), y: $ray.y, direction: "east"},
+                       {x: ($ray.x - 1), y: $ray.y, direction: "west"}]
+        elif $type == "/"
+        then ({x: ($vector.y * -1), y: ($vector.x * -1)} | . + {direction: to_name} | debug ) as $new_vector
+            | .rays += [{x: ($ray.x + $new_vector.x), y: ($ray.y + $new_vector.y), direction: $new_vector.direction} | debug]
+        elif $type == "\\" 
+        then ({x: ($vector.y), y: ($vector.x * -1)} | . + {direction: to_name} | debug ) as $new_vector
+            | .rays += [{x: ($ray.x + $new_vector.x), y: ($ray.y + $new_vector.y), direction: $new_vector.direction} | debug]
         else . 
         end
+    else . end
 ;
 
 def trace_rays:
     . as $table |
-    [foreach .rays[] as $ray (
+    reduce .rays[] as $ray (
         $table + {rays: []}
         ;
         trace_ray($ray)
-        ;
-        if (.rays | length) > 0
+        | if (.rays | length) > 0
         then trace_rays
         else .
         end
-    )] | .[-1]
+    )
 ;
 
 def print:
     .cells[] | reduce .[] as $cell (
         "";
-        . + if ($cell.light_directions | any) then "#" else $cell.type end
+        . + if ($cell.light_directions | any and $cell.type == ".") then "#" else $cell.type end
     )
 ;
-parse_input 
-    | . + {rays: [{x: -1, y: 0, direction: "east"}, {x: 0, y: 2, direction: "north"}]} 
+
+parse_input
+    | . + {rays: [{x: 0, y: 0, direction: "east"}]} 
     | trace_rays | print
