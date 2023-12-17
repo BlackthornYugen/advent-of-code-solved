@@ -60,11 +60,11 @@ def trace_ray($ray):
         then .rays += [{x: ($ray.x + 1), y: $ray.y, direction: "east"},
                        {x: ($ray.x - 1), y: $ray.y, direction: "west"}]
         elif $type == "/"
-        then ({x: ($vector.y * -1), y: ($vector.x * -1)} | . + {direction: to_name} | debug ) as $new_vector
-            | .rays += [{x: ($ray.x + $new_vector.x), y: ($ray.y + $new_vector.y), direction: $new_vector.direction} | debug]
+        then ({x: ($vector.y * -1), y: ($vector.x * -1)} | . + {direction: to_name}) as $new_vector
+            | .rays += [{x: ($ray.x + $new_vector.x), y: ($ray.y + $new_vector.y), direction: $new_vector.direction}]
         elif $type == "\\" 
-        then ({x: ($vector.y), y: ($vector.x * -1)} | . + {direction: to_name} | debug ) as $new_vector
-            | .rays += [{x: ($ray.x + $new_vector.x), y: ($ray.y + $new_vector.y), direction: $new_vector.direction} | debug]
+        then ({x: ($vector.y), y: ($vector.x)} | . + {direction: to_name}) as $new_vector
+            | .rays += [{x: ($ray.x + $new_vector.x), y: ($ray.y + $new_vector.y), direction: $new_vector.direction}]
         else . 
         end
     else . end
@@ -86,10 +86,22 @@ def trace_rays:
 def print:
     .cells[] | reduce .[] as $cell (
         "";
-        . + if ($cell.light_directions | any and $cell.type == ".") then "#" else $cell.type end
+        . + if (
+                $cell.light_directions | any 
+                # and $cell.type == "."
+                ) 
+            then "#" 
+            else $cell.type 
+            end
     )
+;
+
+def count:
+    [.cells[]
+    | map(select((.light_directions | any))) 
+    | length] | add
 ;
 
 parse_input
     | . + {rays: [{x: 0, y: 0, direction: "east"}]} 
-    | trace_rays | print
+    | trace_rays | (print, {energized: count})
