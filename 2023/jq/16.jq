@@ -98,10 +98,37 @@ def print:
 
 def count:
     [.cells[]
-    | map(select((.light_directions | any))) 
+    | map(select(.light_directions | any)) 
     | length] | add
 ;
 
-parse_input
-    | . + {rays: [{x: 0, y: 0, direction: "east"}]} 
-    | trace_rays | (print, {energized: count})
+def simulate_then_count($x; $y; $direction):
+. as $input |
+{$x, $y, energized: ($input 
+            | . + {rays: [{x: $x, y: $y, direction: $direction}]}
+            | trace_rays
+            | count)}
+;
+
+# parse_input
+#     | . + {rays: [{x: 0, y: 0, direction: "east"}]} 
+#     | trace_rays | (print, {energized: count})
+
+parse_input as $input
+    | $input.cells[] | length as $rows
+    | $input.cells[][] | length as $columns
+    | foreach range(0; $columns) as $x ( []; . + foreach range(0; $rows) as $y (
+        [];
+        if $x == 0 then
+            . + [$input | simulate_then_count($x; $y; "east")]
+        elif $y == 0 then
+            . + [$input | simulate_then_count($x; $y; "south")]
+        elif $x == $columns then
+            . + [$input | simulate_then_count($x; $y; "west")]
+        elif $y == ($input | length) then
+            . + [$input | simulate_then_count($x; $y; "north")]
+        else .
+        end
+        ;
+        .
+); .) | sort_by(.energized)[-1]
