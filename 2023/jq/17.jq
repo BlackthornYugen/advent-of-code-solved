@@ -1,18 +1,36 @@
 #!/usr/bin/env -S jq --slurp --raw-input --from-file --raw-output
 
-# PSUDOCODE
+# takes an object like [{x: #, y: #}, ...]
+# returns a direction like {"x":  1, "y":  0}
+def get_direction:
+    if (length < 2)
+    then {"x":  1, "y":  0}
+    else
+        {x: (.[-1].x - .[-2].x), y: (.[-1].y - .[-2].y)}
+    end
+;
 
+# $path an object like {heat_lost: #, crucible_stability: #, steps: [{x: #, y: #}, ...]}
+# $map a list of ints representing heat loss in a cell
+# returns an array of $path
 def get_next_moves($path; $map):
-    # Find our direction, and count how many times we have moved forward.
     # If we have moved forward fewer than 3 times in a row, add forward as
     # a possible move. Add left and right as possible moves. Filter out
     # moves that take us out of bounds. Update heat lost to equal previous
     # heat lost + heat loss of cell we are entering.
+    if $path.crucible_stability > 0
+    then 
     [
-        {heat_lost: 18, steps: [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}, {x: 2, y: 0}]},
-        {heat_lost: 15, steps: [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}]},
-        {heat_lost: 44, steps: [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}, {x: 2, y: 2}]}
+        {heat_lost: 18, crucible_stability: 3, steps: [{x: 0, y: 0}, {x: 0, y: 1}, {x: 1, y: 1}, {x: 1, y: 0}]},
+        {heat_lost: 15, crucible_stability: 1, steps: [{x: 0, y: 0}, {x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}]},
+        {heat_lost: 44, crucible_stability: 3, steps: [{x: 0, y: 0}, {x: 0, y: 1}, {x: 1, y: 1}, {x: 1, y: 2}]}
     ]
+    else
+    [
+        {heat_lost: 18, crucible_stability: 3, steps: [{x: 0, y: 0}, {x: 0, y: 1}, {x: 1, y: 1}, {x: 1, y: 0}]},
+        {heat_lost: 44, crucible_stability: 3, steps: [{x: 0, y: 0}, {x: 0, y: 1}, {x: 1, y: 1}, {x: 1, y: 2}]}
+    ]
+    end
 ;
 
 # takes $frontier and returns $frontier
@@ -21,9 +39,9 @@ def breadth_search($frontier; $map):
     {
         goal_reached: false, frontier: [
             # frontier moves will be kept sorted by the moveset,  
-            {heat_lost: 14, steps: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]},
-            {heat_lost: 16, steps: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]},
-            {heat_lost: 21, steps: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]}
+            {heat_lost: 14, crucible_stability: 1, steps: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]},
+            {heat_lost: 16, crucible_stability: 2, steps: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]},
+            {heat_lost: 21, crucible_stability: 3, steps: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]}
         ]
     } |
     # We will take the cheapest path, check if it's already a solution, if so, set 
@@ -44,13 +62,12 @@ def breadth_search($frontier; $map):
 ;
 
 def print_path($path; $map):
-    # $path | debug | $map | debug |
     reduce $path[] as $step (
         $map;
         .[$step.y][$step.x] = "X"
     )
     |
-    .[] | map(tostring) | join("  ")
+    .[] | (map(tostring) | join("  ")) + "\n"
 ;
 
 def parse_input:
@@ -74,6 +91,6 @@ parse_input as $map
         ]
     }; $map) 
     | (
-        "Heat lost:\t\(.frontier[0].heat_lost)\nSteps:\t\t\(.frontier[0].steps | length)", 
+        "Heat lost:\t\(.frontier[0].heat_lost)\nSteps:\t\t\(.frontier[0].steps | length)\n", 
         print_path(.frontier[0].steps; $map)
-    )
+    ) | stderr | empty
