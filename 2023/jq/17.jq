@@ -4,7 +4,7 @@
 
 # takes a path (set of moves, with heat lost so far)
 # {heat_lost: 14, steps: [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}]}
-def get_next_moves($path, $map):
+def get_next_moves($path; $map):
     [
         {heat_lost: 18, steps: [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}, {x: 2, y: 0}]},
         {heat_lost: 15, steps: [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}]},
@@ -13,7 +13,7 @@ def get_next_moves($path, $map):
 ;
 
 # takes $frontier and returns $frontier
-def breadth_search($frontier, $map):
+def breadth_search($frontier; $map):
     # Each time we are called, we gets something like this: 
     {
         goal_reached: false, frontier: [
@@ -31,8 +31,27 @@ def breadth_search($frontier, $map):
     # to the caller who is looping or recurse into breadth_search again.
 ;
 
-def parse_input:
-    split("\n")
+def print_path($path; $map):
+    reduce $path[] as $step (
+        $map;
+        .[$step.y][$step.x] = "X"
+    )
+    |
+    .[] | map(tostring) | join("  ")
 ;
 
-parse_input
+def parse_input:
+    split("\n") | breadth_search({heat_lost: 0, steps: [{x: 0, y: 0}]}; .)
+;
+
+print_path(
+    [
+        {x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}, {x: 2, y: 2}];
+    [
+        [1, 2, 3, 4, 5, 6, 7],
+        [1, 2, 3, 4, 5, 6, 7],
+        [1, 2, 3, 4, 5, 6, 7],
+        [1, 2, 3, 4, 5, 6, 7],
+        [1, 2, 3, 4, 5, 6, 7]
+    ]
+)
