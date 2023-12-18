@@ -2,9 +2,12 @@
 
 # PSUDOCODE
 
-# takes a path (set of moves, with heat lost so far)
-# {heat_lost: 14, steps: [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}]}
 def get_next_moves($path; $map):
+    # Find our direction, and count how many times we have moved forward.
+    # If we have moved forward fewer than 3 times in a row, add forward as
+    # a possible move. Add left and right as possible moves. Filter out
+    # moves that take us out of bounds. Update heat lost to equal previous
+    # heat lost + heat loss of cell we are entering.
     [
         {heat_lost: 18, steps: [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}, {x: 2, y: 0}]},
         {heat_lost: 15, steps: [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}]},
