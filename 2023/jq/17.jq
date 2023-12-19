@@ -25,51 +25,68 @@ def get_movement_left_right($direction):
 ;
 
 # $path an object like {heat_lost: #, crucible_stability: #, steps: [{x: #, y: #}, ...]}
-# $map a list of ints representing heat loss in a cell
+# $map is a list of ints representing heat loss in a cell
 # returns an array of $path
-def get_next_moves($path; $map):
+def get_next_moves($map):
+    .frontier[0] as $path |
     # If we have moved forward fewer than 3 times in a row, add forward as
     # a possible move. Add left and right as possible moves. Filter out
     # moves that take us out of bounds. Update heat lost to equal previous
     # heat lost + heat loss of cell we are entering.
-    $path.steps | get_direction as $direction |
-    if $path.crucible_stability > 0
-    then [{ heat_lost: $path.heat_lost,
-            crucible_stability: ($path.crucible_stability - 1),
-            steps: ($path.steps + [{x: ($path.steps[-1].x + $direction.x), y: ($path.steps[-1].y + $direction.y)}])
-    }]
-    else []
-    end | 
-    . + reduce get_movement_left_right($direction)[] as $turn ([] ; 
-        . + [{ heat_lost: $path.heat_lost,
-            crucible_stability: ($path.crucible_stability - 1),
-            steps: ($path.steps + [{x: ($path.steps[-1].x + $direction.x), y: ($path.steps[-1].y + $direction.y)}])
+    ($path.steps | get_direction) as $direction |
+    (
+        if $path.crucible_stability > 0
+        then [{ heat_lost: $path.heat_lost,
+                crucible_stability: ($path.crucible_stability - 1),
+                steps: ($path.steps + [{x: ($path.steps[-1].x + $direction.x), y: ($path.steps[-1].y + $direction.y)}])
         }]
-    ) | map(.heat_lost = .heat_lost + $map[.steps[-1].y][.steps[-1].x])
+        else []
+        end | 
+        . + reduce get_movement_left_right($direction)[] as $turn ([] ; 
+            . + [{ heat_lost: $path.heat_lost,
+                crucible_stability: ($path.crucible_stability - 1),
+                steps: ($path.steps + [{x: ($path.steps[-1].x + $turn.x), y: ($path.steps[-1].y + $turn.y)}])
+            }]
+        ) | #debug("Next Moves", .[0:5][].steps) |
+        
+        # Drop paths that lead out of bounds
+        map(if (.steps[-1].y >=0 and .steps[-1].x >=0) then . else empty end) |
+        
+        # Calculate heat lost
+        map(.heat_lost = .heat_lost + $map[.steps[-1].y][.steps[-1].x])
+    ) as $new_paths |
+    .frontier += (reduce $new_paths[] as $path ([]; 
+        # Drop paths that lead out of bounds
+        if ($path.steps[-1].y >=0 and $path.steps[-1].x >=0)
+        then . + [$path]
+        else .
+        end
+        # |
+        # # Drop paths that have been visited
+        # if try .[$path.steps[-1].y][$path.steps[-1].x][$path.crucible_stability][$path.heat_lost] catch false
+        # then . + [$path]
+        # else .
+        # end
+    )) |
+    del(.frontier[0]) | 
+    .frontier = (.frontier | sort_by(.heat_lost))
 ;
 
 def breadth_search($map):
-    # We will take the cheapest path, check if it's already a solution, if so, set 
-    # goal_reached and return without changes
-    if (.frontier[0].steps[-1].x == ($map[0] | length)) and 
-       (.frontier[0].steps[-1].y == ($map    | length))
+    .search_count = .search_count // -1 |
+    .search_count += 1 |
+    if (.frontier[0].steps[-1].x == 12) and 
+       (.frontier[0].steps[-1].y == 0)
     then
-       .goal_reached = true
+       .goal_reached = true | debug("Goal", .frontier[0].steps[-1])
     else
-        .frontier += get_next_moves(.frontier[0]; map) |
-        del(.frontier[0]) | 
-        .frontier = (.frontier | sort_by(.heat_lost))
+        get_next_moves($map)
     end |
     if (.frontier | length) == 0
     then error("Path cannot be found.")
-    else .
+    elif (.goal_reached | not) and (.search_count <= 2000)
+    then breadth_search($map)
     end
-    # If the cheapest path isn't the solution, we have replaced it with the next 
-    # possible moves. We also re-sorted it. 
-    # TODO: 
-    #   + return to the caller who is looping 
-    #                  // or // 
-    #   + recurse into breadth_search again.
 ;
 
 def print_path($path; $map):
@@ -96,6 +113,8 @@ parse_input as $map
     | {frontier: [{crucible_stability: 3, heat_lost: 0, steps: [{x: 0, y: 0}]}] }
     | breadth_search($map)
     | (
-        "Heat lost:\t\(.frontier[0].heat_lost)\nSteps:\t\t\(.frontier[0].steps | length)\n", 
+        "Heat lost:\t\(.frontier[0].heat_lost)\n" +
+        "Steps:\t\t\(.frontier[0].steps | length)\n" +
+        "Checks:\t\t\(.search_count)\n", 
         print_path(.frontier[0].steps; $map)
     ) | stderr | empty
