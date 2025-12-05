@@ -23,6 +23,13 @@ func main() {
 	fmt.Printf("Part 1: %s\n", Part1(inputStr))
 }
 
+const (
+	Left  Direction = 'L'
+	Right Direction = 'R'
+)
+
+type Direction byte
+
 func Part1(input string) string {
 	var lock_position int = 50
 	lines := strings.Split(input, "\n")
@@ -34,7 +41,7 @@ func Part1(input string) string {
 
 		amount, _ := strconv.Atoi(line[1:])
 		var normalized_position int
-		lock_position, normalized_position, _ = UpdateLock(lock_position, line[0], amount)
+		lock_position, normalized_position, _ = UpdateLock(lock_position, Direction(line[0]), amount)
 
 		slog.Debug("Processing line", "line", line, "lock_position", lock_position, "normalized_position", normalized_position)
 
@@ -57,7 +64,7 @@ func Part2(input string) string {
 
 		amount, _ := strconv.Atoi(line[1:])
 		var normalized_position, rotations int
-		lock_position, normalized_position, rotations = UpdateLock(lock_position, line[0], amount)
+		lock_position, normalized_position, rotations = UpdateLock(lock_position, Direction(line[0]), amount)
 
 		slog.Debug("Processing line", "line", line, "lock_position", lock_position, "normalized_position", normalized_position, "rotations", rotations)
 
@@ -70,8 +77,8 @@ func Part2(input string) string {
 	return fmt.Sprintf("%d", zero_count)
 }
 
-func UpdateLock(currentPos int, direction byte, amount int) (int, int, int) {
-	if direction == 'L' {
+func UpdateLock(currentPos int, direction Direction, amount int) (int, int, int) {
+	if direction == Left {
 		currentPos -= amount
 	} else {
 		currentPos += amount
