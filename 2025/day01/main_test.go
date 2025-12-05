@@ -34,8 +34,8 @@ func TestPart2(t *testing.T) {
 		file     string
 		expected string
 	}{
-		{"sample.txt", "0"},
-		{"input.txt", "0"},
+		{"sample.txt", "6"},
+		{"input.txt", "?"},
 	}
 
 	for _, tt := range tests {

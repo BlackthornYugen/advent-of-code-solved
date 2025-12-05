@@ -20,6 +20,7 @@ func main() {
 	inputStr := strings.TrimSpace(string(input))
 
 	fmt.Printf("Part 1: %s\n", Part1(inputStr))
+	fmt.Printf("Part 1: %s\n", Part1(inputStr))
 }
 
 func Part1(input string) string {
@@ -30,18 +31,11 @@ func Part1(input string) string {
 		if line == "" {
 			continue
 		}
-		lock_direction := line[0]
-		lock_amount := line[1:]
-		lock_amount_int, _ := strconv.Atoi(lock_amount)
-		if lock_direction == 'L' {
-			lock_position -= lock_amount_int
-		} else {
-			lock_position += lock_amount_int
-		}
-		normalized_position := lock_position % 100
-		if normalized_position < 0 {
-			normalized_position += 100
-		}
+
+		amount, _ := strconv.Atoi(line[1:])
+		var normalized_position int
+		lock_position, normalized_position, _ = UpdateLock(lock_position, line[0], amount)
+
 		slog.Debug("Processing line", "line", line, "lock_position", lock_position, "normalized_position", normalized_position)
 
 		if normalized_position == 0 {
@@ -53,5 +47,47 @@ func Part1(input string) string {
 }
 
 func Part2(input string) string {
-	panic("Part 2 not implemented")
+	var lock_position int = 50
+	lines := strings.Split(input, "\n")
+	var zero_count int = 0
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+
+		amount, _ := strconv.Atoi(line[1:])
+		var normalized_position, rotations int
+		lock_position, normalized_position, rotations = UpdateLock(lock_position, line[0], amount)
+
+		slog.Debug("Processing line", "line", line, "lock_position", lock_position, "normalized_position", normalized_position, "rotations", rotations)
+
+		if rotations < 0 {
+			rotations = -rotations
+		}
+		zero_count += rotations
+		lock_position = normalized_position
+	}
+	return fmt.Sprintf("%d", zero_count)
+}
+
+func UpdateLock(currentPos int, direction byte, amount int) (int, int, int) {
+	if direction == 'L' {
+		currentPos -= amount
+	} else {
+		currentPos += amount
+	}
+
+	normalized := currentPos % 100
+	if normalized < 0 {
+		normalized += 100
+	}
+
+	var rotations int
+	if currentPos >= 0 {
+		rotations = currentPos / 100
+	} else {
+		rotations = (currentPos - 99) / 100
+	}
+
+	return currentPos, normalized, rotations
 }
