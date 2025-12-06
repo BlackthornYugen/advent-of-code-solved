@@ -68,19 +68,7 @@ func Part1(input string) string {
 					operator := operators[column]
 					value := numbers[0][column]
 
-					for row := 1; row < len(numbers); row++ {
-						operand := numbers[row][column]
-						switch operator {
-						case "+":
-							value += operand
-						case "-":
-							value -= operand
-						case "*":
-							value *= operand
-						case "/":
-							value /= operand
-						}
-					}
+					value = processColumn(numbers, column, operator, value)
 					sumOfFinalOutputs += value
 				}
 			}
@@ -110,16 +98,19 @@ func Part2(input string) string {
 		if operatorPattern.MatchString(line) {
 			operatorLine = line
 			// store index of all non-whitespace chars
-			for i, char := range line {
+			for index, char := range line {
 				if !strings.ContainsRune(" ", char) {
-					operatorIndecies = append(operatorIndecies, i)
+					operatorIndecies = append(operatorIndecies, index)
 				}
 			}
 			// outer index is the line length
 			operands = make([][]int, len(inputLines[0]))
 			// inner index is the number of lines before the operator line
-			for i := 0; i < len(operands); i++ {
-				operands[i] = make([]int, (len(operatorIndecies) - 1))
+			for columnIndex := 0; columnIndex < len(operands); columnIndex++ {
+				operands[columnIndex] = make([]int, (len(operatorIndecies) - 1))
+				for rowIndex := range operands[columnIndex] {
+					operands[columnIndex][rowIndex] = -1
+				}
 			}
 			break
 		}
@@ -149,7 +140,7 @@ func Part2(input string) string {
 				for operandIndex, operandDigit := range operandDigits {
 					var column = startIndex + operandIndex
 					var digit int = int(operandDigit - '0')
-					if column < (len(operands)-1) && lineIndex < (len(operands[column])) {
+					if column < len(operands) && lineIndex < len(operands[column]) {
 						if digit >= 0 && digit <= 9 {
 							operands[column][lineIndex] = digit
 						} else {
@@ -158,7 +149,7 @@ func Part2(input string) string {
 					}
 				}
 
-				slog.Debug("Extracting operand",
+				slog.Debug("Processing operands",
 					"line", line,
 					"startIndex", startIndex,
 					"endIndex", endIndex,
@@ -168,16 +159,79 @@ func Part2(input string) string {
 		}
 	}
 
-	for _, thing := range operands {
+	sumOfFinalOutputs := 0
 
-		slog.Debug("A", "0", thing[0], "1", thing[1], "2", thing[2])
+	for operatorIndex, startIndex := range operatorIndecies {
+		var endIndex int
+		if operatorIndex+1 == len(operatorIndecies) {
+			endIndex = len(operands)
+		} else {
+			endIndex = operatorIndecies[operatorIndex+1] - 1
+		}
+		slog.Debug("Processing ranges",
+			"startIndex", startIndex,
+			"endIndex", endIndex,
+		)
+
+		var currentOperatorNumbers []int
+		for columnIndex := startIndex; columnIndex < endIndex; columnIndex++ {
+			if columnIndex >= len(operands) {
+				break
+			}
+
+			columnDigits := operands[columnIndex]
+			currentNumber := 0
+			hasDigit := false
+
+			for _, digit := range columnDigits {
+				if digit == -1 {
+					continue
+				}
+				currentNumber = currentNumber*10 + digit
+				hasDigit = true
+			}
+
+			if hasDigit {
+				currentOperatorNumbers = append(currentOperatorNumbers, currentNumber)
+			}
+		}
+
+		if len(currentOperatorNumbers) > 0 {
+			currentOperator := string(operatorLine[startIndex])
+
+			processMatrix := make([][]int, len(currentOperatorNumbers))
+			for i, number := range currentOperatorNumbers {
+				processMatrix[i] = []int{number}
+			}
+
+			initialValue := processMatrix[0][0]
+			sumOfFinalOutputs += processColumn(processMatrix, 0, currentOperator, initialValue)
+		}
 	}
 
 	slog.Debug("Processing complete",
 		slog.String("Operator Line", operatorLine),
 		slog.Int("operands", len(operands)),
 		slog.String("operatorIndecies", strings.Join(strings.Fields(fmt.Sprint(operatorIndecies)), ",")),
+		slog.Int("sumOfFinalOutputs", sumOfFinalOutputs),
 	)
 
-	return fmt.Sprintf("%d", 0)
+	return fmt.Sprintf("%d", sumOfFinalOutputs)
+}
+
+func processColumn(numbers [][]int, column int, operator string, value int) int {
+	for row := 1; row < len(numbers); row++ {
+		operand := numbers[row][column]
+		switch operator {
+		case "+":
+			value += operand
+		case "-":
+			value -= operand
+		case "*":
+			value *= operand
+		case "/":
+			value /= operand
+		}
+	}
+	return value
 }

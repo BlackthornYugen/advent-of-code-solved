@@ -38,7 +38,7 @@ func TestPart2(t *testing.T) {
 		expected string
 	}{
 		{"sample.txt", "3263827"},
-		{"input.txt", "?"},
+		{"input.txt", "10189959087258"},
 	}
 
 	for _, tt := range tests {
@@ -50,7 +50,7 @@ func TestPart2(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			inputStr := strings.TrimSpace(string(input))
+			inputStr := string(input)
 			if got := Part2(inputStr); got != tt.expected {
 				t.Errorf("Part2() = %q, want %q", got, tt.expected)
 			}
