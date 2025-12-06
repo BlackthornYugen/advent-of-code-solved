@@ -20,6 +20,20 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: '2025/go.mod'
+
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@latest
+
+      - name: Run Go tests
+        run: |
+          mkdir -p report
+          cd 2025
+          gotestsum --junitfile ../report/go-tests.xml --format testname -- -v ./...
+
       - name: Get Shellspec
         run: curl -fsSL https://git.io/shellspec | tee >(sha256sum) | sh -s -- --yes
 
