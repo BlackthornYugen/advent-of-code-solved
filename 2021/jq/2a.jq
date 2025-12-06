@@ -19,3 +19,6 @@ reduce .[] as $command ({"x": 0, "y": 0};
 
 # Multiply x and -y (depth)
 | .x * (.y * -1)
+
+# Usage
+# jq --slurp --raw-input --from-file "2021/jq/2a.jq" "2021/02_blackthorn.input"
