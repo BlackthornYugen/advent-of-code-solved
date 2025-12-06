@@ -68,7 +68,7 @@ func processRanges(input string, isInvalid func(string) bool) string {
 
 		start, _ := strconv.Atoi(rangeParts[0])
 		end, _ := strconv.Atoi(rangeParts[1])
-		slog.LogAttrs(context.TODO(), slog.LevelDebug-1, "Processing range",
+		slog.LogAttrs(context.TODO(), lib.TraceLogLevel, "Processing range",
 			slog.String("range", rangeStr),
 			slog.Int("start", start),
 			slog.Int("end", end),
@@ -83,7 +83,7 @@ func processRanges(input string, isInvalid func(string) bool) string {
 			if isInvalid(idToBeChecked) {
 				slog.Debug("Invalid ID", "id", numericId)
 				sumOfIds += numericId
-				slog.Log(context.TODO(), slog.LevelDebug-1, "Valid product ID", "id", numericId)
+				slog.Log(context.TODO(), lib.TraceLogLevel, "Valid product ID", "id", numericId)
 			}
 		}
 	}

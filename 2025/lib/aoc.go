@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+const TraceLogLevel = slog.LevelDebug - 1
+
 func Setup() string {
 	debug := flag.Bool("debug", false, "Enable debug logging")
 	trace := flag.Bool("trace", false, "Enable trace logging")
@@ -15,7 +17,7 @@ func Setup() string {
 		Level: slog.LevelInfo,
 	}
 	if *trace || os.Getenv("LOG_LEVEL") == "TRACE" {
-		opts.Level = slog.LevelDebug - 1 // Custom TRACE level
+		opts.Level = TraceLogLevel // Custom TRACE level
 	} else if *debug || os.Getenv("LOG_LEVEL") == "DEBUG" {
 		opts.Level = slog.LevelDebug
 	}
