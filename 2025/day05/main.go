@@ -24,10 +24,14 @@ func main() {
 	fmt.Printf("Part 2: %s\n", Part2(inputStr))
 }
 
+type Range struct {
+	Start int
+	End   int
+}
+
 func Part1(input string) string {
-	// map the range from int to the range to int
 	freshIngredients := 0
-	rangeMap := make(map[int]int)
+	freshRanges := []Range{}
 	lines := strings.Split(input, "\n")
 	parseRanges := true
 	for _, line := range lines {
@@ -40,33 +44,33 @@ func Part1(input string) string {
 		if parseRanges {
 			// parse fresh ranges
 			parts := strings.Split(line, "-")
+			freshRange := Range{}
 			from, _ := strconv.Atoi(parts[0])
 			to, _ := strconv.Atoi(parts[1])
-			slog.Log(context.TODO(), lib.TraceLogLevel, "Processing fresh ranges", "from", from, "to", to)
-			rangeMap[from] = to
+			freshRange.Start = from
+			freshRange.End = to
+			freshRanges = append(freshRanges, freshRange)
+			slog.Log(context.TODO(), lib.TraceLogLevel, "Processing fresh ranges", "from", freshRange.Start, "to", freshRange.End)
 		} else {
 			// parse ingredients
-			for from, to := range rangeMap {
-				slog.Log(context.TODO(), lib.TraceLogLevel, "Checking ingredient", "from", from, "to", to)
-				ingredient, _ := strconv.Atoi(line)
-				if ingredient >= from && ingredient <= to {
+			ingredient, _ := strconv.Atoi(line)
+			for _, freshRange := range freshRanges {
+				// slog.Log(context.TODO(), lib.TraceLogLevel, "Checking ingredient", "from", from, "to", to)
+				if ingredient >= freshRange.Start && ingredient <= freshRange.End {
 					freshIngredients++
-					slog.Debug("Ingredient found in range",
+					slog.Debug("Ingredient is fresh",
 						"ingredient", ingredient,
-						"from", from,
-						"to", to,
+						"from", freshRange.Start,
+						"to", freshRange.End,
 						"freshIngredients", freshIngredients,
 					)
 					break
-				} else {
-					slog.Log(context.TODO(), lib.TraceLogLevel, "Ingredient not in range",
-						"ingredient", ingredient,
-						"from", from,
-						"to", to,
-						"freshIngredients", freshIngredients,
-					)
 				}
 			}
+			slog.Log(context.TODO(), lib.TraceLogLevel, "Ingredient is spoiled",
+				"ingredient", ingredient,
+				"freshIngredients", freshIngredients,
+			)
 		}
 	}
 	return strconv.Itoa(freshIngredients)
