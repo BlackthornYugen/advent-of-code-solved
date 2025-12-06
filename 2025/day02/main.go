@@ -37,11 +37,16 @@ func Part1(input string) string {
 }
 
 func Part2(input string) string {
+	regexCache := make(map[string]*regexp.Regexp)
 	return processRanges(input, func(idToBeChecked string) bool {
 		for i := 0; i < len(idToBeChecked)/2; i++ {
 			// dynamic regex that checks for any repeating sequence
 			var pattern string = fmt.Sprintf("^(%s){%d}$", idToBeChecked[0:i+1], len(idToBeChecked)/(i+1))
-			re := regexp.MustCompile(pattern)
+			re, ok := regexCache[pattern]
+			if !ok {
+				re = regexp.MustCompile(pattern)
+				regexCache[pattern] = re
+			}
 			if re.MatchString(idToBeChecked) {
 				return true
 			}
