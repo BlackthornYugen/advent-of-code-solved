@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/BlackthornYugen/advent-of-code-solved/2025/lib"
@@ -22,7 +25,46 @@ func main() {
 }
 
 func Part1(input string) string {
-	return "Not implemented"
+	productIdRanges := strings.Split(input, ",")
+	sumOfIds := 0
+
+	for _, rangeStr := range productIdRanges {
+		rangeParts := strings.Split(rangeStr, "-")
+		if len(rangeParts) != 2 {
+			slog.Error("Invalid range", "range", rangeStr)
+			continue
+		}
+
+		start, _ := strconv.Atoi(rangeParts[0])
+		end, _ := strconv.Atoi(rangeParts[1])
+		slog.LogAttrs(context.TODO(), slog.LevelDebug-1, "Processing range",
+			slog.String("range", rangeStr),
+			slog.Int("start", start),
+			slog.Int("end", end),
+		)
+		if start > end {
+			slog.Error("Invalid range: start is greater than end", "range", rangeStr)
+			continue
+		}
+
+		for numericId := start; numericId <= end; numericId++ {
+			validId := true
+			var idToBeChecked string = strconv.Itoa(numericId)
+			for i := 0; i <= len(idToBeChecked)/2; i++ {
+				if strings.Contains(idToBeChecked[0:i], idToBeChecked[i:]) {
+					slog.Debug("Invalid ID", "id", numericId)
+					validId = false
+					break
+				}
+
+			}
+			if !validId {
+				sumOfIds += numericId
+				slog.Log(context.TODO(), slog.LevelDebug-1, "Valid product ID", "id", numericId)
+			}
+		}
+	}
+	return strconv.Itoa(sumOfIds)
 }
 
 func Part2(input string) string {
