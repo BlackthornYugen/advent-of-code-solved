@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -20,12 +21,13 @@ func main() {
 	inputStr := strings.TrimSpace(string(input))
 
 	fmt.Printf("Part 1: %s\n", Part1(inputStr))
-	fmt.Printf("Part 1: %s\n", Part1(inputStr))
+	fmt.Printf("Part 2: %s\n", Part2(inputStr))
 }
 
 const (
-	Left  Direction = 'L'
-	Right Direction = 'R'
+	Left     Direction = 'L'
+	Right    Direction = 'R'
+	DialSize           = 100
 )
 
 type Direction byte
@@ -68,9 +70,6 @@ func Part2(input string) string {
 
 		slog.Debug("Processing line", "line", line, "lock_position", lock_position, "normalized_position", normalized_position, "rotations", rotations)
 
-		if rotations < 0 {
-			rotations = -rotations
-		}
 		zero_count += rotations
 		lock_position = normalized_position
 	}
@@ -78,23 +77,34 @@ func Part2(input string) string {
 }
 
 func UpdateLock(currentPos int, direction Direction, amount int) (int, int, int) {
-	if direction == Left {
-		currentPos -= amount
-	} else {
-		currentPos += amount
+	if amount < 0 {
+		panic("amount must be positive")
 	}
-
-	normalized := currentPos % 100
-	if normalized < 0 {
-		normalized += 100
+	start := currentPos
+	var end int
+	if direction == Left {
+		end = start - amount
+	} else {
+		end = start + amount
 	}
 
 	var rotations int
-	if currentPos >= 0 {
-		rotations = currentPos / 100
+	if end > start {
+		rotations = floorDiv(end, DialSize) - floorDiv(start, DialSize)
+	} else if end < start {
+		rotations = floorDiv(start-1, DialSize) - floorDiv(end-1, DialSize)
 	} else {
-		rotations = (currentPos - 99) / 100
+		rotations = 0
 	}
 
-	return currentPos, normalized, rotations
+	normalized := end % DialSize
+	if normalized < 0 {
+		normalized += DialSize
+	}
+
+	return end, normalized, rotations
+}
+
+func floorDiv(numerator, denominator int) int {
+	return int(math.Floor(float64(numerator) / float64(denominator)))
 }
