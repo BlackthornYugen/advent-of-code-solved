@@ -53,7 +53,7 @@ func Part1(input string) string {
 
 				if nearbyObjects < 4 {
 					accessibleObjects++
-					slog.Info("Object is accessible",
+					slog.Debug("Object is accessible",
 						"value", string(lines[y][x]),
 						"position", fmt.Sprintf("(%d,%d)", x, y),
 						"nearby_objects", nearbyObjects,
